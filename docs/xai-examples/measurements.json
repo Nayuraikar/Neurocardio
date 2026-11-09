@@ -1,0 +1,84 @@
+{
+  "source": "results/test_examples_for_xai.npz",
+  "attribution_method": "Grad-CAM conv3; Integrated Gradients logits, 512 trapezoidal intervals",
+  "zero_baseline": "all zeros in per-window z-scored signal space",
+  "sensitivity_baseline": "fixed-seed-0 Gaussian N(0,0.1) per z-scored sample",
+  "examples": [
+    {
+      "class": "N",
+      "record": "219",
+      "sample_position": 181165,
+      "probabilities": [
+        0.9999903440475464,
+        4.612311386154033e-06,
+        2.3530055841547437e-06,
+        2.6666327812563395e-06
+      ],
+      "gradcam_gradient_l2_norm": 0.4967239797115326,
+      "gradcam_max": 1.0,
+      "ig_zero_score_difference": 4.438887596130371,
+      "ig_zero_attribution_sum": 4.443005561828613,
+      "ig_zero_completeness_error": 0.0041179656982421875,
+      "ig_noise_completeness_error": 0.12774085998535156,
+      "ig_zero_vs_noise_l1": 88.07487487792969,
+      "ig_zero_vs_noise_relative_l1": 4.4854278564453125
+    },
+    {
+      "class": "S",
+      "record": "100",
+      "sample_position": 520982,
+      "probabilities": [
+        0.0014351030113175511,
+        0.997918963432312,
+        0.0006449242355301976,
+        9.519828267912089e-07
+      ],
+      "gradcam_gradient_l2_norm": 1.0797091722488403,
+      "gradcam_max": 1.0,
+      "ig_zero_score_difference": 8.49410629272461,
+      "ig_zero_attribution_sum": 8.511724472045898,
+      "ig_zero_completeness_error": 0.017618179321289062,
+      "ig_noise_completeness_error": 0.008165240287780762,
+      "ig_zero_vs_noise_l1": 69.80403137207031,
+      "ig_zero_vs_noise_relative_l1": 1.203812837600708
+    },
+    {
+      "class": "V",
+      "record": "221",
+      "sample_position": 221268,
+      "probabilities": [
+        4.392732080304995e-05,
+        5.875258011656115e-06,
+        0.9999457597732544,
+        4.384392923384439e-06
+      ],
+      "gradcam_gradient_l2_norm": 0.3831043541431427,
+      "gradcam_max": 1.0,
+      "ig_zero_score_difference": 9.47360897064209,
+      "ig_zero_attribution_sum": 9.446952819824219,
+      "ig_zero_completeness_error": -0.026656150817871094,
+      "ig_noise_completeness_error": -0.7509193420410156,
+      "ig_zero_vs_noise_l1": 49.369651794433594,
+      "ig_zero_vs_noise_relative_l1": 1.53948974609375
+    },
+    {
+      "class": "F",
+      "record": "213",
+      "sample_position": 529130,
+      "probabilities": [
+        0.012858899310231209,
+        4.5647942897630855e-05,
+        0.010259827598929405,
+        0.9768355488777161
+      ],
+      "gradcam_gradient_l2_norm": 0.8215988278388977,
+      "gradcam_max": 1.0,
+      "ig_zero_score_difference": 6.817681312561035,
+      "ig_zero_attribution_sum": 6.889355659484863,
+      "ig_zero_completeness_error": 0.07167434692382812,
+      "ig_noise_completeness_error": 0.07756882905960083,
+      "ig_zero_vs_noise_l1": 60.70702362060547,
+      "ig_zero_vs_noise_relative_l1": 1.273786187171936
+    }
+  ]
+}
