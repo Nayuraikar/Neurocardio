@@ -1,0 +1,12 @@
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #343448;
+  background: #fffdf9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+}
+
+body { margin: 0; min-width: 320px; }

@@ -1,0 +1,42 @@
+{
+  "scenario_2": {
+    "status": "PASS",
+    "detail": "Rejected with error: \"WFDB companion filenames must share one base name; mismatched files: 223.hea (base '223'), 223.dat (base '223'), 228.atr (base '228')\" and Run button disabled"
+  },
+  "scenario_3": {
+    "status": "PASS",
+    "detail": "Single .hea error: \"WFDB header 223.hea requires exactly one matching .dat file (expected 223.dat)\"; txt error: \"unsupported upload; provide a CSV or WFDB .hea with matching .dat\""
+  },
+  "scenario_1": {
+    "status": "PASS",
+    "detail": "Analysis e9ff10d2-a554-42bb-b256-b43310f09207 completed with beats, R-peaks, flags: Valid beats 2603 2 edge windows skipped"
+  },
+  "scenario_10": {
+    "status": "PASS",
+    "detail": "Beat numbering verified (#1 -> Beat 1), filters work (flagged: 16, V: 4), Load more: works"
+  },
+  "scenario_4": {
+    "status": "PASS",
+    "detail": "Default class was 'V', Grad-CAM and IG rendered distinct curves with zero line, baseline and completeness error; switching class to N updated curve."
+  },
+  "scenario_5": {
+    "status": "PASS",
+    "detail": "Review saved. Original class and reviewed class visible: \"20e1f489 | N | S | Verified in browser: manual review to S\""
+  },
+  "scenario_6": {
+    "status": "PASS",
+    "detail": "PDF valid (282438 bytes, %PDF-), CSV valid (2605 lines)"
+  },
+  "scenario_9": {
+    "status": "PASS",
+    "detail": "Precision/recall table verified, weak S/F warning displayed: \"S and F recall are weak: S recall 9.7% (precision 34.2%); F recall 5.7% (precision 5.0%). Research prototype, not a diagnostic device.\""
+  },
+  "scenario_7": {
+    "status": "PASS",
+    "detail": "Analysis delete confirmed and deleted from library."
+  },
+  "scenario_8": {
+    "status": "PASS",
+    "detail": "Recordings (6) and reviews (0) persist exactly after backend restart in SQLite."
+  }
+}
