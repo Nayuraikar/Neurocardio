@@ -1,43 +1,88 @@
 # NeuroCardio
 
-**Understand the rhythm. Explore the signal.** A local, explainable ECG beat-classification research prototype. It is not a clinically validated diagnostic device.
+NeuroCardio is a CNN-BiLSTM ECG beat classifier (N/S/V/F, AAMI classes) with explainability and human review. It is a research prototype and decision-support tool, not a diagnostic device.
 
-## Requirements
+## Quick start (macOS/Linux)
 
-- macOS/Linux with Python 3.11 and the project venv at `backend/.venv`.
-- Node/npm and the dependencies already present in `frontend/node_modules`.
-- Local model/config files in `backend/models/` and the Kaggle-derived evaluation/data files in `results/`.
-
-No Docker, database server, or network service is required. Backend pins record the installed environment in `backend/requirements.txt`.
-
-## Run
-
-Terminal 1, from the project root:
+Prerequisites: Python 3.11 (developed with 3.11.15), Node.js 22 (developed with v22.12.0) and npm.
 
 ```sh
-MPLCONFIGDIR=/tmp/neurocardio-mpl backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+./setup.sh      # creates backend/.venv, installs Python deps, runs npm install
+./run.sh        # starts API (127.0.0.1:8000) and frontend; Ctrl+C stops both
 ```
 
-Terminal 2:
+Open http://localhost:5173 and upload the files from `sample_data/` (select a record's `.hea`, `.dat` and `.atr` together, e.g. 100).
+
+### Manual steps (also for Windows)
 
 ```sh
-cd frontend
-npm run dev -- --host localhost
+# one-time
+python3.11 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt   # Windows: backend\.venv\Scripts\python
+cd frontend && npm install && cd ..
+
+# terminal 1 (project root)
+backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+
+# terminal 2
+cd frontend && npm run dev -- --host localhost
+
+# tests
+cd backend && PYTHONPATH=. .venv/bin/python -m pytest -q
 ```
 
-The frontend Vite proxy forwards `/api` to `127.0.0.1:8000`. FastAPI docs are at `http://127.0.0.1:8000/docs`.
+API docs: http://127.0.0.1:8000/docs. The Vite dev server proxies `/api` to port 8000. `backend/data/` (SQLite DB, uploads, reports) is created automatically on first start.
 
-## Model and data
+## Features
 
-The backend loads the verified `bilstm_aug_sqrtw` export once on startup. It expects one `(720,1)` window per beat at 360 Hz, with class order N/S/V/F and no RR input. Filtering and windowing are defined in [the inference pipeline](docs/inference-pipeline.md). `/results` is read-only source evidence. Runtime recordings and SQLite data are stored under `backend/data/`.
+- Dashboard and upload (WFDB or CSV)
+- ECG viewer: paper grid, zoom/pan, overview strip, R-peaks, RR/bpm, class-shaded abnormal beats
+- Single verdict card with composition bar
+- Per-beat Explain drawer (Grad-CAM / Integrated Gradients heatmap plus top contributing beats)
+- Doctor review/edit; model and reviewed values are stored separately
+- Model architecture page
+- PDF and CSV report export
 
-The model classifies beats; it does not diagnose an entire recording. Fixed-test recall is low for S and F. See [limitations](docs/limitations.md), [verification](docs/model-verification-report.md), and [the user guide](docs/user-guide.md).
+## Model
 
-## Checks
+- Input: 720x1 R-peak-centred window, 0.5-40 Hz Butterworth bandpass, per-window z-score
+- Architecture: Conv1D 32/64/128 + BatchNorm + MaxPool -> BiLSTM 64/direction -> Dropout 0.4 -> Dense 64 -> Dense 4 softmax; 142,980 parameters
+- Selected by validation macro-F1; sqrt-weighted cross-entropy
+- Files: `backend/models/` (`neurocardio_final.keras`, `.sha256`, `preprocessing_config.json`). Details in `docs/inference-pipeline.md`.
 
-```sh
-MPLCONFIGDIR=/tmp/neurocardio-mpl TF_NUM_INTRAOP_THREADS=1 TF_NUM_INTEROP_THREADS=1 OMP_NUM_THREADS=1 backend/.venv/bin/python -m pytest backend/tests -v -p no:cacheprovider
-cd frontend && npm run build
+## Evaluation
+
+Fixed record-wise split: 16 train / 7 validation / 21 test records; 4 paced records excluded.
+
+| Accuracy | Macro-F1 | Macro ROC-AUC |
+|---|---|---|
+| 0.906 | 0.473 | 0.837 |
+
+Recall for S is about 0.10 and for F about 0.06: the model largely misses these minority classes. See `docs/limitations.md` and `docs/model-verification-report.md`.
+
+## Limitations
+
+- Retrospective analysis of recordings only; not real-time or live.
+- Decision-support only, not a diagnosis; it classifies beats, not whole recordings.
+- The training notebook/code is not included in this repository.
+- Some large research artifacts (extra model variants, `results/test_examples_for_xai.npz`, >100 MB) are not in the repo; the tests that need that file are skipped when it is absent.
+
+## Troubleshooting
+
+- Port in use: stop the other process on 8000/5173, or change `--port` (and the proxy in `frontend/vite.config.ts`).
+- TensorFlow install fails (Apple Silicon/Windows): use Python 3.11 64-bit and upgrade pip; `tensorflow==2.20.0` is pinned.
+- Model not found: confirm `backend/models/neurocardio_final.keras` exists and `shasum -a 256 -c neurocardio_final.keras.sha256` passes (run in `backend/models`).
+- CORS / API errors: the backend allows `http://localhost:5173`; open the app at `localhost`, not `127.0.0.1`, and keep the backend on port 8000.
+- `results/` files missing: `/api/v1/model-info` reads metrics JSONs from `results/`.
+
+## Structure
+
 ```
-
-See [testing report](docs/testing-report.md) for exact results and pending browser checks.
+backend/app/     FastAPI app (api, ml, services, models)
+backend/models/  trained model + preprocessing config
+backend/tests/   pytest suite
+frontend/src/    React + Vite UI
+results/         metrics/configs and results/mitdb records
+sample_data/     demo records 100, 106, 228
+docs/            methodology, reports, user guide
+```

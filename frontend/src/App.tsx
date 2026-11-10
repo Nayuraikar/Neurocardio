@@ -1,32 +1,29 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useParams, useSearchParams } from 'react-router-dom'
-import axios from 'axios'
-import { Activity, ArrowRight, BrainCircuit, ClipboardCheck, FileText, HeartPulse, Home, Microscope, ScanLine, Settings, Upload, Users, Waves } from 'lucide-react'
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { Activity, ArrowRight, BrainCircuit, ClipboardCheck, FileText, ScanLine, Upload, Waves } from 'lucide-react'
 import HomePage from './HomePage'
+import TopNav from './Nav'
+import EcgPlot from './EcgPlot'
+import ExplainDrawer from './ExplainDrawer'
+import ModelFlow from './ModelFlow'
+import UploadCard from './UploadCard'
+import { api, colors, CLASS_CODES, CLASS_NAMES, DISCLAIMER, effectiveClass, summarise, type Beat, type Review, type ClassCode } from './shared'
 import './App.css'
+import './pulmify.css'
 
-const api = axios.create({ baseURL: '/api/v1' })
-const colors: Record<string, string> = { N: '#668B70', S: '#D5A34C', V: '#C66B52', F: '#9881B6' }
+const SIG_COUNT = 10000
 type Analysis = { id: string; record_id: string; status: string; model_version: string; preprocessing_version: string; beat_count: number; started_at: string; completed_at: string | null; skipped_edge_count: number; summary: { class_counts?: Record<string, number>; abnormal_beat_count?: number; flagged_for_review_count?: number }; error_message?: string; peak_source?: string }
-type Review = { id: string; original_prediction: string; reviewed_label: string; note: string | null; status: string }
-type Beat = { id: string; beat_index: number; sample_index: number; timestamp_seconds: number; prediction: { predicted_class: string; probabilities: number[]; confidence: number; margin: number; review_flag: boolean }; review?: Review | null }
 
 function Shell({ children }: { children: ReactNode }) {
-  const links = [['Overview', '/app/dashboard', Home], ['New analysis', '/app/new', Upload], ['Recordings', '/app/recordings', Waves], ['Human review', '/app/reviews', Users], ['Reports', '/app/reports', FileText], ['Model information', '/app/model', Microscope], ['Settings', '/app/settings', Settings]] as const
-  return <div className="shell"><aside className="sidebar"><Link to="/app/dashboard" className="brand"><span className="brand-icon"><HeartPulse/></span><span>NeuroCardio<small>RESEARCH PLATFORM</small></span></Link><nav aria-label="Workspace navigation">{links.map(([t,p,I])=><NavLink end={p==='/app/dashboard'} key={p} to={p}><I size={17}/>{t}</NavLink>)}</nav><div className="side-note"><b>LOCAL WORKSPACE</b><span>● Model ready</span></div></aside><main><header className="topbar"><Link to="/" aria-label="NeuroCardio homepage">NEUROCARDIO</Link><i>/</i> LOCAL WORKSPACE <span>LOCAL SESSION</span></header>{children}<footer>NeuroCardio · Understand the rhythm. Explore the signal. <span>Research use only · Not a clinical diagnosis</span></footer></main></div>
+  return <div className="pf-shell"><TopNav/><main className="pf-main">{children}</main><footer className="pf-footer"><span>NeuroCardio · Understand the rhythm. Explore the signal.</span><span>Research use only · Not a clinical diagnosis</span></footer></div>
 }
-function OverviewLayout({ children }: { children: ReactNode }) {
-  return <div className="overview-layout">
-    <header className="home-nav overview-nav">
-      <Link to="/" className="home-brand" aria-label="NeuroCardio home"><span className="home-brand-mark"><HeartPulse size={21} strokeWidth={1.6}/></span><span>NeuroCardio<small>THE RHYTHM RESEARCH DESK</small></span></Link>
-      <nav aria-label="Overview navigation"><Link to="/#approach">About / Research</Link></nav>
-      <Link className="nav-workspace" to="/app/new">New Analysis <ArrowRight size={15}/></Link>
-    </header>
-    <main className="overview-main">{children}</main>
-    <footer className="overview-footer">NeuroCardio · Understand the rhythm. Explore the signal. <span>Research use only · Not a clinical diagnosis</span></footer>
-  </div>
+function Disclaimer() { return <p className="pf-disclaimer" role="note">{DISCLAIMER}</p> }
+function LatestAnalysis() {
+  const [to, setTo] = useState<string | null>(null)
+  useEffect(() => { api.get('/analyses').then(r => { const a = (r.data as Analysis[]).find(x => x.status === 'completed'); setTo(a ? `/app/analyses/${a.id}` : '/app/dashboard#upload') }).catch(() => setTo('/app/dashboard')) }, [])
+  return to ? <Navigate to={to} replace/> : <Page tag="ANALYSIS" title="Opening latest analysis…"><Empty title="Loading" text="Looking for your most recent completed analysis."/></Page>
 }
-function Page({ tag,title,subtitle,children }: { tag:string;title:string;subtitle?:string;children:ReactNode }) { return <section className="page"><div className="heading"><div className="eyebrow">{tag}</div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div>{children}</section> }
+function Page({ tag,title,subtitle,children }: { tag:string;title:string;subtitle?:string;children:ReactNode }) { return <section className="page"><span className="pf-corner">CARDIOLOGY</span><div className="heading"><div className="eyebrow">{tag}</div><h1>{title}</h1>{subtitle&&<p>{subtitle}</p>}</div>{children}</section> }
 function Empty({title,text}:{title:string;text:string}) { return <div className="empty"><Activity/><b>{title}</b><span>{text}</span></div> }
 function ErrorBox({text}:{text:string}) { return <div className="error" role="alert">{text}</div> }
 function Metric({label,value,note}:{label:string;value:string;note:string}) { return <article className="metric"><span>{label}</span><b>{value}</b><small>{note}</small></article> }
@@ -35,6 +32,8 @@ type ReviewBeat = Beat & { review?: unknown | null }
 type DashboardReviewCounts = { flagged: number; pending: number }
 
 function Dash() {
+  const loc = useLocation()
+  useEffect(() => { if (loc.hash === '#upload') document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' }) }, [loc.hash])
   const [analyses, setAnalyses] = useState<Analysis[] | null>(null)
   const [records, setRecords] = useState<ECGRecord[] | null>(null)
   const [analysisError, setAnalysisError] = useState('')
@@ -83,6 +82,9 @@ function Dash() {
   const beatsProcessed = analyses ? completed.reduce((sum, analysis) => sum + analysis.beat_count, 0) : null
   const pendingReviews = reviewCounts ? Object.values(reviewCounts).reduce((sum, counts) => sum + counts.pending, 0) : null
   const recent = analyses?.slice(0, 6) || []
+  const classTotals = completed.reduce((acc, a) => { CLASS_CODES.forEach(c => { acc[c] += a.summary.class_counts?.[c] || 0 }); return acc }, { N: 0, S: 0, V: 0, F: 0 })
+  const classSum = CLASS_CODES.reduce((t, c) => t + classTotals[c], 0)
+  const flaggedTotal = reviewCounts ? Object.values(reviewCounts).reduce((t, c) => t + c.flagged, 0) : analyses ? completed.reduce((t, a) => t + (a.summary.flagged_for_review_count || 0), 0) : null
   const metricValue = (value: number | null) => value === null ? '—' : value.toLocaleString()
   const formatDate = (value: string | null) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value)) : 'Date unavailable'
   const actions = [
@@ -95,6 +97,15 @@ function Dash() {
 
   return <Page tag="LOCAL WORKSPACE" title="Your ECG workspace." subtitle="Review local recordings, follow analysis activity and choose what to work on next.">
     {analysisError && <ErrorBox text={analysisError} />}
+    <div className="pf-dash-top"><UploadCard/>
+      <div className="pf-kpis" aria-label="Key figures">
+        <article><span className="pf-label">BEATS ANALYSED</span><b className="pf-big">{metricValue(beatsProcessed)}</b><small>Across {completed.length} completed {completed.length === 1 ? 'analysis' : 'analyses'}</small></article>
+        <article><span className="pf-label">CLASS SHARE</span>
+          <div className="pf-share">{CLASS_CODES.map(c => <div key={c}><i style={{ background: colors[c] }}/><b>{c}</b><span>{classSum ? (classTotals[c] / classSum * 100).toFixed(1) + '%' : '—'}</span></div>)}</div>
+          <div className="pf-stack" aria-hidden="true">{CLASS_CODES.map(c => <i key={c} style={{ width: `${classSum ? classTotals[c] / classSum * 100 : 0}%`, background: colors[c] }}/>)}</div></article>
+        <article><span className="pf-label">FLAGGED FOR REVIEW</span><b className="pf-big">{metricValue(flaggedTotal)}</b><small>Low-confidence beats · {metricValue(pendingReviews)} still unreviewed</small></article>
+      </div>
+    </div>
     <section className="workspace-welcome">
       <div className="workspace-welcome-copy"><span className="workspace-kicker">NEUROCARDIO / RESEARCH DESK</span><p>ECG beat analysis, made navigable. Inspect a recording, follow its model results and bring flagged beats into human review.</p><Link className="workspace-primary-action" to="/app/new"><Upload size={17} /> New ECG Analysis <ArrowRight size={16} /></Link><span className="workspace-local-note"><i /> Local recordings · Retrospective research</span></div>
       <div className="workspace-ecg-visual"><span className="workspace-figure-label">SIGNAL / STUDY VIEW</span><svg viewBox="0 0 640 190" role="img" aria-labelledby="workspace-ecg-title workspace-ecg-description"><title id="workspace-ecg-title">Illustrative ECG waveform</title><desc id="workspace-ecg-description">Decorative waveform graphic, not a patient recording.</desc><defs><pattern id="workspace-small-grid" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="#343448" strokeOpacity=".08" strokeWidth="1"/></pattern><pattern id="workspace-large-grid" width="80" height="80" patternUnits="userSpaceOnUse"><rect width="80" height="80" fill="url(#workspace-small-grid)"/><path d="M80 0H0V80" fill="none" stroke="#343448" strokeOpacity=".12"/></pattern></defs><rect width="640" height="190" fill="url(#workspace-large-grid)"/><path d="M0 96h100l12-1 14 2 14-1 14 1 10-2 12 1 12-1 12 2 12-1 10 1 8-2 8 2 9-1 8 1 10-2 9 2 10-1 10 1 11-2 11 2 13-1 13 1 14-2 14 2 14-1 15 1 16-2 16 2h137" fill="none" stroke="#697565" strokeWidth="2.4" strokeLinejoin="round"/><path d="M248 97h25l12-1 14 1 10-2 11 1 12-1 11 2 14-1 10-1 9 2 8-1 11 1 9-2 8 2 6-1 4-42 5 77 5-28 11-10 14 2 13-1 14 2 15-1 15 1 14-1 16 2 18-1h58" fill="none" stroke="#a85d55" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"/><circle cx="423" cy="56" r="4" fill="#a85d55"/><text x="435" y="51" fill="#655f67" fontSize="9" letterSpacing="1.5">R-PEAK</text></svg><div className="workspace-ecg-caption"><span>ILLUSTRATIVE TRACE · NOT PATIENT DATA</span><b>Signal in context.</b></div></div>
@@ -183,6 +194,11 @@ function Result() {
   const [flaggedOnly, setFlaggedOnly] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [heat, setHeat] = useState<{ t: number; dur: number; values: number[] } | null>(null)
+  const [showId, setShowId] = useState(false)
+  const [focus, setFocus] = useState<{ t: number; k: number } | null>(null)
+  const [rowLimit, setRowLimit] = useState(200)
   const classificationRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -194,7 +210,8 @@ function Result() {
     setFindingBeats(null)
     setFindingError('')
     setSelectedBeat(null)
-    Promise.all([api.get(`/analyses/${id}`), api.get(`/analyses/${id}/beats?limit=500`), api.get(`/analyses/${id}/signal?count=6000`)]).then(([a, b, s]) => {
+    setDrawerOpen(false)
+    Promise.all([api.get(`/analyses/${id}`), api.get(`/analyses/${id}/beats?limit=500`), api.get(`/analyses/${id}/signal?count=${SIG_COUNT}`)]).then(([a, b, s]) => {
       setD({ analysis: a.data, beats: b.data, signal: s.data })
       setHasMore(b.data.length === 500)
     }).catch(e => setError(e.response?.data?.detail?.message || e.response?.data?.detail || e.message))
@@ -271,7 +288,6 @@ function Result() {
   if (error) return <Page tag="ANALYSIS" title="Analysis unavailable"><ErrorBox text={error}/></Page>
   if (!d) return <Page tag="ANALYSIS" title="Loading analysis…"><Empty title="Waiting for local API" text="Analysis data is retrieved from the backend."/></Page>
   const analysis: Analysis = d.analysis
-  const points = d.signal.sample_indices.map((_: number, i: number) => ({ time_seconds: d.signal.time_seconds[i], amplitude: d.signal.amplitude[i] }))
   const visibleBeats = d.beats.filter((b: Beat) => (classFilter === 'all' || b.prediction.predicted_class === classFilter) && (!flaggedOnly || b.prediction.review_flag))
   const classCodes = ['N', 'S', 'V', 'F'] as const
   const classCounts = (findingBeats || []).reduce<Record<string, number>>((counts, beat) => {
@@ -330,6 +346,7 @@ function Result() {
     }, { N: 0, S: 0, V: 0, F: 0 })
     return { index, start, end, beats, counts }
   })
+  const sum = summarise(d.beats)
   const recordingTitle = recordingName || `Recording ${analysis.record_id.slice(0, 8)}`
   async function loadMore() {
     setLoadingMore(true)
@@ -342,22 +359,55 @@ function Result() {
   }
   async function setSignalMode(on: boolean) {
     try {
-      const startSample = selectedBeat ? Math.max(0, selectedBeat.sample_index - 3000) : 0
-      const s = await api.get(`/analyses/${id}/signal`, { params: { start_sample: startSample, count: 6000, filtered: on } })
+      const startSample = d.signal.start_sample ?? 0
+      const s = await api.get(`/analyses/${id}/signal`, { params: { start_sample: startSample, count: SIG_COUNT, filtered: on } })
       setD((current: any) => current ? { ...current, signal: s.data } : current)
       setFiltered(on)
     } catch (e: any) { setError(e.response?.data?.detail || e.message) }
   }
-  async function selectBeat(beat: Beat) {
+  async function selectBeat(beat: Beat, open = false) {
     setSelectedBeat(beat)
     setReviewClass(beat.review?.reviewed_label || beat.prediction.predicted_class)
     setNote(beat.review?.note || '')
     setReviewMessage('')
+    if (open) setDrawerOpen(true)
     try {
-      const startSample = Math.max(0, beat.sample_index - 3000)
-      const signal = await api.get(`/analyses/${id}/signal`, { params: { start_sample: startSample, count: 6000, filtered } })
-      setD((current: any) => current ? { ...current, signal: signal.data } : current)
+      const sig = d.signal
+      const inside = beat.sample_index >= sig.start_sample && beat.sample_index < sig.start_sample + sig.sample_indices.length
+      if (!inside) {
+        const startSample = Math.max(0, beat.sample_index - SIG_COUNT / 2)
+        const signal = await api.get(`/analyses/${id}/signal`, { params: { start_sample: startSample, count: SIG_COUNT, filtered } })
+        setD((current: any) => current ? { ...current, signal: signal.data } : current)
+      }
+      setFocus({ t: beat.timestamp_seconds, k: Date.now() })
     } catch (e: any) { setError(e.response?.data?.detail || e.message) }
+  }
+  async function shiftWindow(dir: -1 | 1) {
+    try {
+      const start = Math.max(0, d.signal.start_sample + dir * Math.round(SIG_COUNT * 0.8))
+      const s = await api.get(`/analyses/${id}/signal`, { params: { start_sample: start, count: SIG_COUNT, filtered } })
+      if (!s.data.amplitude.length) return
+      setD((current: any) => current ? { ...current, signal: s.data } : current)
+      setFocus({ t: dir > 0 ? s.data.time_seconds[0] + 5 : s.data.time_seconds[s.data.time_seconds.length - 1] - 5, k: Date.now() })
+    } catch (e: any) { setError(e.response?.data?.detail || e.message) }
+  }
+  function patchBeat(beatId: string, review: Review | null) {
+    setD((current: any) => current ? { ...current, beats: current.beats.map((b: Beat) => b.id === beatId ? { ...b, review } : b) } : current)
+    setSelectedBeat(current => current && current.id === beatId ? { ...current, review } : current)
+  }
+  async function setReview(beat: Beat, label: string | null) {
+    const prev = beat.review ?? null
+    patchBeat(beat.id, label ? { id: prev?.id ?? 'pending', original_prediction: beat.prediction.predicted_class, reviewed_label: label, note: prev?.note ?? null, status: 'reviewed' } : null)
+    try {
+      const r = await api.post('/reviews', { beat_id: beat.id, reviewed_label: label, note: prev?.note ?? undefined })
+      if (label) patchBeat(beat.id, r.data as Review)
+      setReviewMessage('')
+    } catch (e: any) { patchBeat(beat.id, prev); setReviewMessage(e.response?.data?.detail || e.message) }
+  }
+  function openFromCard() {
+    if (selectedBeat) { setDrawerOpen(true); return }
+    const pick = d.beats.filter((b: Beat) => b.prediction.predicted_class === sum.dominantModel).sort((x: Beat, y: Beat) => y.prediction.confidence - x.prediction.confidence)[0]
+    if (pick) void selectBeat(pick, true)
   }
   function showClassBeats(code: typeof classCodes[number]) {
     setClassFilter(code)
@@ -382,12 +432,46 @@ function Result() {
       setReviewMessage(`Review saved separately. Original model class: ${review.original_prediction}.`)
     } catch (e: any) { setReviewMessage(e.response?.data?.detail || e.message) }
   }
-  return <Page tag="ANALYSIS RESULTS" title={recordingTitle} subtitle={`${analysis.status} · ${analysis.model_version} · ${analysis.preprocessing_version}`}>
+  return <Page tag="ANALYSIS RESULTS" title={recordingTitle} subtitle={undefined}>
+    <div className="pf-idline"><button type="button" className="pf-info" aria-expanded={showId} onClick={() => setShowId(v => !v)}>ⓘ details</button>{showId && <code>{analysis.status} · {analysis.model_version} · {analysis.preprocessing_version}</code>}</div>
+    {analysis.status === 'completed' && <>
+    <div className="pf-analysis-top">
+      <article id="beat-waveform" className="panel pf-plot-panel"><span className="pf-corner">WAVEFORM</span><div className="panel-head"><h2>ECG waveform</h2><div className="actions"><button aria-pressed={!filtered} onClick={() => setSignalMode(false)}>Raw</button><button aria-pressed={filtered} onClick={() => setSignalMode(true)}>Filtered</button><span>{filtered ? 'Filtered' : 'Raw'} · 360 Hz</span></div></div>
+        <EcgPlot times={d.signal.time_seconds} amps={d.signal.amplitude} beats={d.beats} selectedId={selectedBeat?.id} focus={focus} heat={drawerOpen ? heat : null} onSelect={b => void selectBeat(b, true)} onShift={dir => void shiftWindow(dir)}/></article>
+      <aside className="pf-result" onClick={openFromCard} aria-label="Result summary">
+        {sum.n ? (() => {
+          const share = (c: ClassCode) => sum.model[c] / sum.n
+          const head: ClassCode | null = share('V') >= 0.01 ? 'V' : (['S', 'F'] as ClassCode[]).filter(c => share(c) >= 0.05).sort((x, y) => sum.model[y] - sum.model[x])[0] ?? null
+          const hc: ClassCode = head ?? 'N'
+          const title = head === 'V' ? 'Ventricular ectopic beats present' : head === 'S' ? 'Supraventricular ectopic beats present' : head === 'F' ? 'Fusion beats present' : 'Predominantly normal'
+          const conf = sum.model[hc] ? sum.confSum[hc] / sum.model[hc] : 0
+          const dv = sum.edited > 0 ? `${sum.edited} ${sum.edited === 1 ? 'beat' : 'beats'} edited · ${hc} ${(share(hc) * 100).toFixed(1)}% → ${(sum.reviewed[hc] / sum.n * 100).toFixed(1)}%` : null
+          return <>
+            <div className="pf-verdict">
+              <span className="pf-mlabel">RESULT</span>
+              <h2>{title}</h2>
+              <div className="pf-big num">{(conf * 100).toFixed(1)}<small>%</small></div>
+              <div className="pf-mlabel">avg. model confidence for {hc} beats</div>
+              <div className="pf-sub num">{sum.model[hc].toLocaleString()} of {sum.n.toLocaleString()} beats · {(share(hc) * 100).toFixed(1)}%</div>
+              <div className="pf-stackbar" role="img" aria-label="Beat class composition">{CLASS_CODES.map(c => sum.model[c] > 0 && <i key={c} style={{ width: `${share(c) * 100}%`, background: colors[c] }}/>)}</div>
+              <div className="pf-legend num">{CLASS_CODES.map(c => <span key={c} title={CLASS_NAMES[c]}><i style={{ background: colors[c] }}/>{c} {sum.model[c].toLocaleString()}</span>)}</div>
+              <div className="pf-delta num">{dv ?? <em>No edits yet</em>}</div>
+            </div>
+            {sum.flagged > 0 && <div className="pf-flag">⚑ Review recommended · {sum.flagged.toLocaleString()} {sum.flagged === 1 ? 'beat' : 'beats'} flagged low-confidence</div>}
+            <button type="button" className="pf-cta-btn">EXPLAIN →</button>
+          </>
+        })() : <p>Loading beat predictions…</p>}
+      </aside>
+    </div>
+    <article ref={classificationRef} id="beat-classifications" className="panel table-scroll pf-beats"><span className="pf-corner">BEATS</span><div className="panel-head"><h2>Beat list</h2><span>{findingBeats ? `Showing ${Math.min(rowLimit, visibleBeats.length).toLocaleString()} of ${visibleBeats.length.toLocaleString()} beats` : `Loading saved predictions · ${analysis.beat_count.toLocaleString()} total`}</span></div><div className="table-filters"><label>Class<select value={classFilter} onChange={e => setClassFilter(e.target.value)}><option value="all">All classes</option>{classCodes.map(c => <option key={c} value={c}>{c} · {classTitles[c]}</option>)}</select></label><label className="flag-filter"><input type="checkbox" checked={flaggedOnly} onChange={e => setFlaggedOnly(e.target.checked)}/> Flagged only</label></div>
+      {reviewMessage && <p className="review-message" role="status">{reviewMessage}</p>}
+      <table><thead><tr><th>#</th><th>Time</th><th>Model</th><th>Conf.</th><th>N</th><th>S</th><th>V</th><th>F</th><th>Reviewed</th><th></th></tr></thead><tbody>{visibleBeats.slice(0, rowLimit).map((b: Beat) => { const mc = b.prediction.predicted_class; const edited = !!b.review?.reviewed_label; return <tr key={b.id} className={selectedBeat?.id === b.id ? 'selected-row' : ''} onClick={() => void selectBeat(b, true)}><td>{b.beat_index + 1}</td><td>{b.timestamp_seconds.toFixed(2)}s{b.prediction.review_flag ? ' ⚑' : ''}</td><td><span className="pf-chip" style={{ color: colors[mc], borderColor: colors[mc] }} title={CLASS_NAMES[mc as keyof typeof CLASS_NAMES]}>{mc}</span></td><td>{(b.prediction.confidence * 100).toFixed(1)}%</td>{b.prediction.probabilities.map((p: number, i: number) => <td key={i}>{p.toFixed(3)}</td>)}<td className="pf-review-cell"><select aria-label={`Reviewed class for beat ${b.beat_index + 1}`} value={effectiveClass(b)} onClick={e => e.stopPropagation()} onChange={e => void setReview(b, e.target.value)}>{CLASS_CODES.map(c => <option key={c} value={c}>{c} · {CLASS_NAMES[c]}</option>)}</select>{edited && <span className="pf-reviewed">REVIEWED</span>}</td><td className="pf-actions-cell"><button type="button" disabled={!b.review?.reviewed_label} onClick={e => { e.stopPropagation(); void setReview(b, null) }}>Reset to model</button><button type="button" onClick={e => { e.stopPropagation(); void selectBeat(b, true) }}>Explain</button></td></tr> })}</tbody></table>{!visibleBeats.length && <Empty title="No matching beats" text="Change the class or review-flag filters."/>}{visibleBeats.length > rowLimit && <button type="button" onClick={() => setRowLimit(n => n + 300)}>Show more rows ({(visibleBeats.length - rowLimit).toLocaleString()} left)</button>}{hasMore && <button disabled={loadingMore} onClick={loadMore}>{loadingMore ? 'Loading…' : 'Load more beats'}</button>}</article>
+    </>}
     <section className={`analysis-summary ${hasValidDistribution ? 'analysis-summary-ready' : 'analysis-summary-insufficient'}`}>
       <div className="analysis-summary-heading"><div><span className="eyebrow">RECORDING OVERVIEW</span><h2>Analysis summary</h2></div><span className={`analysis-status status-${analysis.status}`}>{analysis.status}</span></div>
       {hasValidDistribution ? <>
         <div className="analysis-summary-result">
-          <strong>{classCounts.V > 0 ? 'Ventricular ectopic activity detected' : classCounts.S > 0 ? 'Supraventricular ectopic activity detected' : classCounts.F > 0 ? 'Fusion beats detected' : 'No abnormal-class beats detected by the model.'}</strong>
+          <strong>{(() => { const n = analysis.beat_count || 1; return classCounts.V / n >= 0.01 ? 'Ventricular ectopic beats present' : classCounts.S / n >= 0.05 ? 'Supraventricular ectopic beats present' : classCounts.F / n >= 0.05 ? 'Fusion beats present' : 'Predominantly normal' })()}</strong>
           <p>{classCounts.V > 0
             ? `The model classified ${classCounts.V.toLocaleString()} beats as ventricular ectopic (${(classCounts.V / analysis.beat_count * 100).toFixed(1)}%). This beat class does not independently establish PVCs, ventricular tachycardia, or another rhythm diagnosis.`
             : classCounts.S > 0
@@ -467,11 +551,11 @@ function Result() {
       </> : <div className="analysis-distribution-unavailable">{findingBeats === null ? 'Loading timestamped predictions…' : 'Temporal distribution is unavailable without a complete prediction list and recording duration.'}</div>}
     </section>
     {error && <ErrorBox text={error}/>}
-    <article id="beat-waveform" className="panel"><div className="panel-head"><h2>ECG recording waveform</h2><div className="actions"><button onClick={() => setSignalMode(false)}>Raw</button><button onClick={() => setSignalMode(true)}>Filtered</button><span>{filtered ? 'Filtered' : 'Raw'} · 360 Hz</span></div></div><Wave points={points} beats={d.beats.slice(0, 50)} selectedBeat={selectedBeat}/></article>
-    {analysis.status === 'completed' && <article ref={classificationRef} id="beat-classifications" className="panel table-scroll"><div className="panel-head"><h2>Beat classifications</h2><span>{findingBeats ? `Showing ${visibleBeats.length.toLocaleString()} of ${analysis.beat_count.toLocaleString()} beats` : `Loading saved predictions · ${analysis.beat_count.toLocaleString()} total`}</span></div><div className="table-filters"><label>Class<select value={classFilter} onChange={e => setClassFilter(e.target.value)}><option value="all">All classes</option>{classCodes.map(c => <option key={c} value={c}>{c} · {classTitles[c]}</option>)}</select></label><label className="flag-filter"><input type="checkbox" checked={flaggedOnly} onChange={e => setFlaggedOnly(e.target.checked)}/> Flagged only</label></div><table><thead><tr><th>#</th><th>Time</th><th>Class</th><th>N</th><th>S</th><th>V</th><th>F</th><th>Review</th></tr></thead><tbody>{visibleBeats.map((b: Beat) => <tr key={b.id} className={selectedBeat?.id === b.id ? 'selected-row' : ''} onClick={() => selectBeat(b)}><td>{b.beat_index + 1}</td><td>{b.timestamp_seconds.toFixed(2)}s</td><td style={{ color: colors[b.prediction.predicted_class] }}>{b.prediction.predicted_class}</td>{b.prediction.probabilities.map((p: number, i: number) => <td key={i}>{p.toFixed(3)}</td>)}<td>{b.review?.status || (b.prediction.review_flag ? 'Flagged' : '—')}</td></tr>)}</tbody></table>{!visibleBeats.length && <Empty title="No matching beats" text="Change the class or review-flag filters."/>}{hasMore && <button disabled={loadingMore} onClick={loadMore}>{loadingMore ? 'Loading…' : 'Load more beats'}</button>}</article>}
     {analysis.status === 'completed' && <article className="panel selected-beat-panel"><div className="analysis-section-heading"><div><span className="eyebrow">DETAIL 01</span><h2>Selected beat.</h2></div>{selectedBeat && <span>Beat {selectedBeat.beat_index + 1} · {selectedBeat.timestamp_seconds.toFixed(3)} s</span>}</div>{selectedBeat ? <><p>Model prediction: <b style={{ color: colors[selectedBeat.prediction.predicted_class] }}>{selectedBeat.prediction.predicted_class}</b> · confidence {(selectedBeat.prediction.confidence * 100).toFixed(1)}%{selectedBeat.prediction.review_flag ? ' · flagged for review' : ''}</p><div className="selected-probabilities">{classCodes.map((code, index) => <div key={code}><b style={{ color: colors[code] }}>{code}</b><span>{(selectedBeat.prediction.probabilities[index] * 100).toFixed(1)}%</span></div>)}</div></> : <p>Select a row above to inspect its class probabilities and waveform segment.</p>}</article>}
     {analysis.status === 'completed' && <section className="panel analysis-next-steps"><div className="analysis-section-heading"><div><span className="eyebrow">OPTIONAL EXPLORATION</span><h2>Explainability.</h2></div></div>{selectedBeat ? <><p>Explore how the selected beat contributed to its model output. Attributions are experimental, not clinical evidence.</p><div className="analysis-link-row"><Link to={`/app/explainability?analysis=${id}&beat=${selectedBeat.id}&method=gradcam`}>Grad-CAM <ArrowRight size={14}/></Link><Link to={`/app/explainability?analysis=${id}&beat=${selectedBeat.id}&method=ig`}>Integrated Gradients <ArrowRight size={14}/></Link></div></> : <p>Select a beat above to enable Grad-CAM and Integrated Gradients exploration.</p>}</section>}
     {analysis.status === 'completed' && <section className="panel human-review-panel"><div className="analysis-section-heading"><div><span className="eyebrow">SEPARATE HUMAN LABEL</span><h2>Human review.</h2></div>{selectedBeat?.review && <span className="review-state">Saved · {selectedBeat.review.status}</span>}</div>{selectedBeat ? <><p>The model prediction and probabilities remain unchanged when you save a review.</p><div className="human-review-controls"><label>Reviewed label<select value={reviewClass} onChange={e => setReviewClass(e.target.value)}>{classCodes.map(code => <option key={code} value={code}>{code}</option>)}</select></label><label>Note<input value={note} onChange={e => setNote(e.target.value)} placeholder="Optional context"/></label><button onClick={saveReview}>Save separate review</button></div>{selectedBeat.review && <p className="saved-review-note">Saved label: <b>{selectedBeat.review.reviewed_label}</b>{selectedBeat.review.note ? ` · ${selectedBeat.review.note}` : ''}</p>}{reviewMessage && <p className="review-message" role="status">{reviewMessage}</p>}</> : <p>Select a flagged beat above to add or inspect a separate human label.</p>}</section>}
+    <Disclaimer/>
+    {drawerOpen && selectedBeat && <ExplainDrawer analysisId={analysis.id} beat={selectedBeat} beats={d.beats} onClose={() => setDrawerOpen(false)} onJump={b => void selectBeat(b, true)} onHeat={setHeat}/>}
   </Page>
 }
 function Explain() {
@@ -872,6 +956,7 @@ function Explain() {
           </>
         )}
       </article>
+      <Disclaimer/>
     </Page>
   )
 }
@@ -891,7 +976,7 @@ function Records() {
 }
 function Reviews() { const [r,setR]=useState<any[]>([]),[queue,setQueue]=useState<any[]>([]);useEffect(()=>{Promise.all([api.get('/reviews'),api.get('/analyses')]).then(async([saved,analyses])=>{setR(saved.data);const batches=await Promise.all(analyses.data.filter((a:Analysis)=>a.status==='completed').map((a:Analysis)=>api.get(`/analyses/${a.id}/beats?limit=10000`).then(x=>x.data.map((b:any)=>({...b,analysis_id:a.id,model_version:a.model_version})))));setQueue(batches.flat().filter((b:any)=>b.prediction?.review_flag&&!b.review))})},[]);return <Page tag="HUMAN REVIEW" title="Review flagged beats." subtitle="Human labels are separate; model predictions are preserved."><article className="panel"><h2>Flagged prediction queue</h2><table><thead><tr><th>Analysis</th><th>Beat</th><th>Model class</th><th>Confidence</th><th/></tr></thead><tbody>{queue.map(b=><tr key={b.id}><td>{b.analysis_id.slice(0,8)}</td><td>{b.beat_index+1}</td><td>{b.prediction.predicted_class}</td><td>{(b.prediction.confidence*100).toFixed(1)}%</td><td><Link to={`/app/analyses/${b.analysis_id}?beat=${b.id}`}>Open beat for review</Link></td></tr>)}</tbody></table>{!queue.length&&<Empty title="No flagged beats waiting" text="The queue is derived from actual saved analyses."/>}</article><article className="panel"><h2>Saved reviews</h2><table><thead><tr><th>Beat</th><th>Original model class</th><th>Reviewed class</th><th>Status</th><th>Note</th></tr></thead><tbody>{r.map(x=><tr key={x.id}><td>{x.beat_id.slice(0,8)}</td><td>{x.original_prediction}</td><td>{x.reviewed_label||'—'}</td><td>{x.status}</td><td>{x.note||'—'}</td></tr>)}</tbody></table>{!r.length&&<Empty title="No reviews saved" text="Submitted reviews will appear here."/>}</article></Page> }
 function Reports() { const [r,setR]=useState<Analysis[]>([]);useEffect(()=>{api.get('/analyses').then(x=>setR(x.data))},[]);return <Page tag="REPORTS" title="Research exports." subtitle="PDF summaries and beat-level CSVs from completed analyses.">{r.filter(a=>a.status==='completed').map(a=><article className="panel report" key={a.id}><div><h2>{a.id.slice(0,8)} · {a.beat_count} beats</h2><p>{a.model_version} · {a.preprocessing_version}</p></div><span><a href={`/api/v1/reports/${a.id}?format=pdf`}>PDF</a> · <a href={`/api/v1/reports/${a.id}?format=csv`}>CSV</a></span></article>)}{!r.some(a=>a.status==='completed')&&<article className="panel"><Empty title="No reports available" text="Complete an analysis to export a report."/></article>}</Page> }
-function Model() { const [d,setD]=useState<any>(null),[e,setE]=useState('');useEffect(()=>{api.get('/model-info').then(x=>setD(x.data)).catch(x=>setE(x.message))},[]);const shape=(x:any[])=>`(${x.map(v=>v===null?'batch':v).join(', ')})`;return <Page tag="MODEL INFORMATION" title="Evidence before interpretation." subtitle="Metrics are read from local evaluation artifacts.">{e&&<ErrorBox text={e}/ >}{d&&<><article className="panel"><div className="eyebrow">SELECTED EXPORT</div><h2>{d.model}</h2><p>Input {shape(d.input_shape)} · output {shape(d.output_shape)} · classes {d.classes.join(' / ')} · {d.lead} at {d.sampling_rate} Hz</p><small>SHA-256 {d.model_sha256}</small></article><div className="metrics"><Metric label="Test accuracy" value={d.test_metrics.accuracy.toFixed(4)} note="Fixed MIT-BIH test"/><Metric label="Macro F1" value={d.test_metrics.macro_f1.toFixed(4)} note="Fixed test"/><Metric label="Macro ROC-AUC" value={d.test_metrics.macro_roc_auc.toFixed(4)} note="One-vs-rest"/><Metric label="Grouped CV F1" value={Number(d.grouped_cv_pooled.macro_f1).toFixed(4)} note="Pooled folds"/></div><article className="panel"><h2>Class-wise test performance</h2><table><thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead><tbody>{Object.entries(d.test_metrics.class_metrics).map(([c,v]:[string,any])=><tr key={c}><td style={{color:colors[c]}}>{c}</td><td>{v.precision.toFixed(4)}</td><td>{v.recall.toFixed(4)}</td><td>{v.f1.toFixed(4)}</td><td>{v.support}</td></tr>)}</tbody></table><div className="warning">S and F recall are weak: S recall {(d.test_metrics.class_metrics.S.recall*100).toFixed(1)}% (precision {(d.test_metrics.class_metrics.S.precision*100).toFixed(1)}%); F recall {(d.test_metrics.class_metrics.F.recall*100).toFixed(1)}% (precision {(d.test_metrics.class_metrics.F.precision*100).toFixed(1)}%).</div></article><article className="panel"><h2>Confusion matrix · true rows / predicted columns</h2><pre>{d.test_metrics.confusion_matrix_true_rows_pred_columns.map((x:number[])=>x.join('   ')).join('\n')}</pre></article></>}</Page> }
+function Model() { const [d,setD]=useState<any>(null),[e,setE]=useState('');useEffect(()=>{api.get('/model-info').then(x=>setD(x.data)).catch(x=>setE(x.message))},[]);const shape=(x:any[])=>`(${x.map(v=>v===null?'batch':v).join(', ')})`;return <Page tag="MODEL INFORMATION" title="Evidence before interpretation." subtitle="Metrics are read from local evaluation artifacts."><ModelFlow acc={d?.test_metrics?.accuracy ?? 0.906} f1={d?.test_metrics?.macro_f1 ?? 0.473} auc={d?.test_metrics?.macro_roc_auc ?? 0.837} fromApi={!!d?.test_metrics}/>{e&&<ErrorBox text={e}/ >}{d&&<><article className="panel"><div className="eyebrow">SELECTED EXPORT</div><h2>{d.model}</h2><p>Input {shape(d.input_shape)} · output {shape(d.output_shape)} · classes {d.classes.join(' / ')} · {d.lead} at {d.sampling_rate} Hz</p><small>SHA-256 {d.model_sha256}</small></article><div className="metrics"><Metric label="Test accuracy" value={d.test_metrics.accuracy.toFixed(4)} note="Fixed MIT-BIH test"/><Metric label="Macro F1" value={d.test_metrics.macro_f1.toFixed(4)} note="Fixed test"/><Metric label="Macro ROC-AUC" value={d.test_metrics.macro_roc_auc.toFixed(4)} note="One-vs-rest"/><Metric label="Grouped CV F1" value={Number(d.grouped_cv_pooled.macro_f1).toFixed(4)} note="Pooled folds"/></div><article className="panel"><h2>Class-wise test performance</h2><table><thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead><tbody>{Object.entries(d.test_metrics.class_metrics).map(([c,v]:[string,any])=><tr key={c}><td style={{color:colors[c]}}>{c}</td><td>{v.precision.toFixed(4)}</td><td>{v.recall.toFixed(4)}</td><td>{v.f1.toFixed(4)}</td><td>{v.support}</td></tr>)}</tbody></table><div className="warning">S and F recall are weak: S recall {(d.test_metrics.class_metrics.S.recall*100).toFixed(1)}% (precision {(d.test_metrics.class_metrics.S.precision*100).toFixed(1)}%); F recall {(d.test_metrics.class_metrics.F.recall*100).toFixed(1)}% (precision {(d.test_metrics.class_metrics.F.precision*100).toFixed(1)}%).</div></article><article className="panel"><h2>Confusion matrix · true rows / predicted columns</h2><pre>{d.test_metrics.confusion_matrix_true_rows_pred_columns.map((x:number[])=>x.join('   ')).join('\n')}</pre></article></>}</Page> }
 function SettingsPage(){return <Page tag="SETTINGS" title="Local by design." subtitle="Runtime details and model input expectations."><section className="settings-layout"><article className="settings-intro"><div className="eyebrow">RUNTIME NOTES</div><h2>Research stays close to the signal.</h2><p>NeuroCardio runs as a local research workspace. Recordings and analysis records are stored in the project's local SQLite database; uploaded signals are not a cloud service.</p><Link to="/app/model">Review model information <ArrowRight size={15}/></Link></article><article className="settings-runtime"><div className="eyebrow">CURRENT CONFIGURATION</div><h2>Analysis environment</h2><div className="runtime-facts"><div><span>Storage</span><b>Local SQLite</b><small>backend/data</small></div><div><span>Model input</span><b>360 Hz</b><small>Other sampling rates are rejected</small></div><div><span>Signal window</span><b>720 samples</b><small>Single ECG lead</small></div><div><span>Analysis mode</span><b>Retrospective</b><small>Beat-level classification</small></div></div></article></section></Page>}
-function AppRoutes(){return <Routes><Route path="new" element={<NewPage/>}/><Route path="analyses/:id" element={<Result/>}/><Route path="explainability" element={<Explain/>}/><Route path="recordings" element={<Records/>}/><Route path="reviews" element={<Reviews/>}/><Route path="reports" element={<Reports/>}/><Route path="model" element={<Model/>}/><Route path="settings" element={<SettingsPage/>}/><Route path="*" element={<Navigate to="/app/dashboard" replace/>}/></Routes>}
-export default function App(){return <BrowserRouter><Routes><Route path="/" element={<HomePage/>}/><Route path="/app" element={<Navigate to="/app/dashboard" replace/>}/><Route path="/app/dashboard" element={<OverviewLayout><Dash/></OverviewLayout>}/><Route path="/app/*" element={<Shell><AppRoutes/></Shell>}/><Route path="/*" element={<Shell><AppRoutes/></Shell>}/></Routes></BrowserRouter>}
+function AppRoutes(){return <Routes><Route path="dashboard" element={<Dash/>}/><Route path="analysis" element={<LatestAnalysis/>}/><Route path="new" element={<NewPage/>}/><Route path="analyses/:id" element={<Result/>}/><Route path="explainability" element={<Explain/>}/><Route path="recordings" element={<Records/>}/><Route path="reviews" element={<Reviews/>}/><Route path="reports" element={<Reports/>}/><Route path="model" element={<Model/>}/><Route path="settings" element={<SettingsPage/>}/><Route path="*" element={<Navigate to="/app/dashboard" replace/>}/></Routes>}
+export default function App(){return <BrowserRouter><div className="pf"><Routes><Route path="/" element={<HomePage/>}/><Route path="/app" element={<Navigate to="/app/dashboard" replace/>}/><Route path="/app/*" element={<Shell><AppRoutes/></Shell>}/><Route path="/*" element={<Shell><AppRoutes/></Shell>}/></Routes></div></BrowserRouter>}

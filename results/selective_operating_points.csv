@@ -1,0 +1,4 @@
+operating_point,tau,margin,val_coverage,val_risk,test_coverage,test_review_rate,test_risk
+conservative,0.989,0.0,0.445,0.0098,0.542,0.458,0.0357
+balanced,0.833,0.0,0.805,0.0293,0.839,0.161,0.0521
+permissive,0.646,0.2,0.931,0.0499,0.926,0.074,0.0668
