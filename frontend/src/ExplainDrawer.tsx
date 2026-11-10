@@ -3,7 +3,9 @@ import { api, CLASS_NAMES, colors, effectiveClass, type Beat, type ClassCode } f
 
 type Method = 'gradcam' | 'ig'
 type Expl = { method: Method; class: string; attributions: number[]; metadata?: Record<string, unknown>; cached?: boolean }
-const gcCache = new Map<string, number[]>()
+const explCache = new Map<string, Expl>()
+const ck = (a: string, b: string, c: string, m: Method) => `${a}:${b}:${c}:${m}`
+const TIP = 'IG: deletion tests show the highlighted regions affect the prediction. Grad-CAM: low resolution; weaker in tests.'
 const MAX_CANDIDATES = 12
 const TOP_N = 8
 
@@ -17,8 +19,9 @@ export default function ExplainDrawer({ analysisId, beat, beats, onClose, onJump
   analysisId: string; beat: Beat; beats: Beat[]; onClose: () => void; onJump: (b: Beat) => void; onHeat?: (h: { t: number; dur: number; values: number[] } | null) => void
 }) {
   const cls = beat.prediction.predicted_class as ClassCode
-  const [method, setMethod] = useState<Method>('gradcam')
-  const [expl, setExpl] = useState<Expl | null>(null)
+  const [method, setMethod] = useState<Method>('ig')
+  const [expl, setExpl] = useState<(Expl & { beatId: string }) | null>(null)
+  const [loading, setLoading] = useState(false)
   const [signal, setSignal] = useState<number[]>([])
   const [err, setErr] = useState('')
   const [ranking, setRanking] = useState<{ beat: Beat; score: number }[]>([])
@@ -45,15 +48,20 @@ export default function ExplainDrawer({ analysisId, beat, beats, onClose, onJump
 
   useEffect(() => {
     let off = false
-    setExpl(null)
+    const key = ck(analysisId, beat.id, cls, method)
+    const hit = explCache.get(key)
+    if (hit) { setExpl({ ...hit, beatId: beat.id }); setLoading(false); setErr(''); return }
+    setLoading(true)
+    // keep the previous heatmap visible while loading, but only for the same beat
+    setExpl(prev => (prev && prev.beatId === beat.id ? prev : null))
     api.get(`/analyses/${analysisId}/explanations`, { params: { beat: beat.id, class: cls, method } })
       .then(r => {
         if (off) return
-        if (r.data.method !== method || r.data.class !== cls) { setErr('The API returned an explanation for a different method or class; not displayed.'); return }
-        setExpl(r.data)
-        if (method === 'gradcam') gcCache.set(`${analysisId}:${beat.id}:${cls}`, r.data.attributions)
+        if (r.data.method !== method || r.data.class !== cls) { setErr('The API returned an explanation for a different method or class; not displayed.'); setLoading(false); return }
+        explCache.set(key, r.data)
+        setExpl({ ...r.data, beatId: beat.id }); setLoading(false)
       })
-      .catch(e => { if (!off) setErr(e.response?.data?.detail || e.message) })
+      .catch(e => { if (!off) { setErr(e.response?.data?.detail || e.message); setLoading(false) } })
     return () => { off = true }
   }, [analysisId, beat.id, cls, method])
 
@@ -73,22 +81,23 @@ export default function ExplainDrawer({ analysisId, beat, beats, onClose, onJump
     const worker = async () => {
       while (!off && next < candidates.length) {
         const b = candidates[next++]
-        const key = `${analysisId}:${b.id}:${cls}`
+        const key = ck(analysisId, b.id, cls, method)
         try {
-          let attrs = gcCache.get(key)
-          if (!attrs) {
-            const r = await api.get(`/analyses/${analysisId}/explanations`, { params: { beat: b.id, class: cls, method: 'gradcam' } })
-            attrs = r.data.attributions as number[]
-            gcCache.set(key, attrs)
+          let e = explCache.get(key)
+          if (!e) {
+            const r = await api.get(`/analyses/${analysisId}/explanations`, { params: { beat: b.id, class: cls, method } })
+            e = r.data as Expl
+            explCache.set(key, e)
           }
-          scores.set(b.id, attrs.reduce((s, v) => s + Math.max(0, v), 0) / (attrs.length || 1))
+          const attrs = e.attributions
+          scores.set(b.id, attrs.reduce((s, v) => s + (method === 'ig' ? Math.abs(v) : Math.max(0, v)), 0) / (attrs.length || 1))
           publish()
         } catch { /* beats near a recording edge cannot be explained; skip */ }
       }
     }
     Promise.all([worker(), worker(), worker()]).then(() => { if (!off) setRankBusy(false) })
     return () => { off = true }
-  }, [analysisId, cls])
+  }, [analysisId, cls, method])
 
   const attrs = expl?.attributions ?? []
   useEffect(() => {
@@ -126,19 +135,22 @@ export default function ExplainDrawer({ analysisId, beat, beats, onClose, onJump
         <span><i>REVIEWED</i>{beat.review?.reviewed_label ? <b style={{ color: colors[eff] }}>{CLASS_NAMES[eff as ClassCode]}</b> : <b>—</b>}</span>
       </div>
       <div className="pf-seg" role="group" aria-label="Attribution method">
-        <button type="button" aria-pressed={method === 'gradcam'} className={method === 'gradcam' ? 'on' : ''} onClick={() => setMethod('gradcam')}>Grad-CAM</button>
         <button type="button" aria-pressed={method === 'ig'} className={method === 'ig' ? 'on' : ''} onClick={() => setMethod('ig')}>Integrated Gradients</button>
+        <button type="button" aria-pressed={method === 'gradcam'} className={method === 'gradcam' ? 'on' : ''} onClick={() => setMethod('gradcam')}>Grad-CAM (coarse)</button>
+        <span className="pf-meta" title={TIP} aria-label={TIP} style={{ marginLeft: 8, alignSelf: 'center' }}>ⓘ</span>
       </div>
+      <p className="pf-meta">{TIP}</p>
       {err && <div className="error" role="alert">{err}</div>}
       <div className="pf-heat">
-        {!signal.length || !expl ? <div className="pf-plot-empty">Loading attribution…</div> :
+        {!signal.length || !expl ? <div className="pf-plot-empty">Loading attribution…</div> : <>
+          {loading && <div className="pf-meta" role="status">Computing {method === 'ig' ? 'Integrated Gradients' : 'Grad-CAM'}… showing previous heatmap</div>}
           <svg viewBox={`0 0 ${CW} ${CH}`} role="img" aria-label="Beat trace with attribution heatmap behind it">
             {bands.map(bd => <rect key={bd.x} x={bd.x} y={0} width={G} height={CH} fill={bd.fill} fillOpacity={bd.opacity} />)}
             {[1, 2, 3].map(i => <line key={i} x1={0} x2={CW} y1={CH * i / 4} y2={CH * i / 4} stroke="#999" strokeOpacity=".5" strokeDasharray="1 4" />)}
             <line x1={360} x2={360} y1={0} y2={CH} stroke="#111" strokeDasharray="4 3" strokeOpacity=".6" />
             <polyline points={trace} fill="none" stroke="#111" strokeWidth="1.6" strokeLinejoin="round" />
             <text x={364} y={12} fontSize="10" fill="#111">R-PEAK</text>
-          </svg>}
+          </svg></>}
       </div>
       <div className="pf-heat-legend"><span>LOW</span><i /><span>HIGH attribution</span><small>720 samples · 360 Hz{method === 'ig' ? ' · |attribution| shown' : ''}</small></div>
       {allZero && <div className="warning">No positive evidence for this class in this window (ReLU Grad-CAM).</div>}
@@ -147,7 +159,7 @@ export default function ExplainDrawer({ analysisId, beat, beats, onClose, onJump
         : `Baseline ${String(meta.baseline ?? 'zero')} · completeness error ${typeof meta.completeness_error === 'number' ? meta.completeness_error.toFixed(5) : '—'} · ${expl.cached ? 'cached' : 'computed'}`}</p>}
 
       <h3>Beats driving this decision</h3>
-      <p className="pf-meta">Class {cls} · top {TOP_N} of the {MAX_CANDIDATES} highest-confidence {CLASS_NAMES[cls].toLowerCase()} beats, ranked by Grad-CAM attribution mass{rankBusy ? ' · computing…' : ''}.</p>
+      <p className="pf-meta">Class {cls} · top {TOP_N} of the {MAX_CANDIDATES} highest-confidence {CLASS_NAMES[cls].toLowerCase()} beats, ranked by {method === 'ig' ? 'Integrated Gradients' : 'Grad-CAM'} attribution mass{rankBusy ? ' · computing…' : ''}.</p>
       <ol className="pf-rank">
         {ranking.map((r, i) => <li key={r.beat.id}>
           <button type="button" onClick={() => onJump(r.beat)} className={r.beat.id === beat.id ? 'on' : ''}>
