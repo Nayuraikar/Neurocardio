@@ -33,3 +33,4 @@ results/__results___files/
 .DS_Store
 .idea/
 .vscode/
+backend.log

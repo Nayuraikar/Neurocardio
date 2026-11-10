@@ -11,6 +11,9 @@ Prerequisites: Python 3.11 (developed with 3.11.15), Node.js 22 (developed with 
 ./run.sh        # starts API (127.0.0.1:8000) and frontend; Ctrl+C stops both
 ```
 
+Requires Node ^20.19, ^22.13 or >=24, and Python 3.11.
+The first launch takes up to a minute while TensorFlow loads.
+
 Open http://localhost:5173 and upload the files from `sample_data/` (select a record's `.hea`, `.dat` and `.atr` together, e.g. 100).
 
 ### Manual steps (also for Windows)
