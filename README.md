@@ -41,7 +41,7 @@ API docs: http://127.0.0.1:8000/docs. The Vite dev server proxies `/api` to port
 - Dashboard and upload (WFDB or CSV)
 - ECG viewer: paper grid, zoom/pan, overview strip, R-peaks, RR/bpm, class-shaded abnormal beats
 - Single verdict card with composition bar
-- Per-beat Explain drawer (Grad-CAM / Integrated Gradients heatmap plus top contributing beats)
+- Per-beat Explain drawer (Integrated Gradients by default, Grad-CAM as the coarse alternative; heatmap plus top contributing beats)
 - Doctor review/edit; model and reviewed values are stored separately
 - Model architecture page
 - PDF and CSV report export
@@ -68,6 +68,13 @@ Recall for S is about 0.10 and for F about 0.06: the model largely misses these 
 - Retrospective analysis of recordings only; not real-time or live.
 - Decision-support only, not a diagnosis; it classifies beats, not whole recordings.
 - The training notebook/code is not included in this repository.
+- Calibration: ECE 0.042 -> 0.031 after temperature scaling (T=1.30, fit on validation records).
+- Small minority classes: record-level bootstrap 95% CIs are S recall [0.06, 0.41] and F recall [0.00, 0.38], too wide to draw conclusions about S/F performance.
+- End-to-end with XQRS-detected peaks, V recall (misses counted as errors) drops from 0.892 to 0.860.
+- PVC burden per record: MAE 4.46 percentage points, Pearson r = 0.595.
+- Noise: stable with white noise added to the raw signal down to 12 dB SNR, but collapses if noise reaches the z-scored window (macro-F1 0.27 at 30 dB, ~0.05 at 24 dB). Only white noise was tested. Hypothesis (untested): only S and F were augmented in training (Gaussian noise sd 0.03 among the transforms), so N and V never saw noisy beats, and noise may act as a class cue; under heavy noise the model predicts almost everything as F/S.
+- Explanations pass a weight-randomization check. Deletion tests are mixed: Integrated Gradients is faithful under MoRF vs LeRF (mean probability drop 0.28 vs -0.02 at 50% deleted), while Grad-CAM is weak (0.07 vs 0.03) and, with interpolated replacement, no better than deleting a random contiguous block.
+- Details: `results/extended_eval/summary.md` and `results/extended_eval/diagnostics.md`.
 - Some large research artifacts (extra model variants, `results/test_examples_for_xai.npz`, >100 MB) are not in the repo; the tests that need that file are skipped when it is absent.
 
 ## Troubleshooting
