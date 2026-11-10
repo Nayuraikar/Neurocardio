@@ -1,5 +1,6 @@
 import { Activity, ArrowDown, ArrowUpRight, BrainCircuit, HeartPulse, ScanLine, UserRoundCheck, Waves } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import TopNav from './Nav'
 
 const classes = [
   { code: 'N', title: 'Normal', detail: 'Normal beats and selected normal variants', color: 'mint' },
@@ -59,23 +60,12 @@ function MethodDiagram() {
 export default function HomePage() {
   return (
     <main className="home">
-      <header className="home-nav">
-        <Link to="/" className="home-brand" aria-label="NeuroCardio home">
-          <span className="home-brand-mark"><HeartPulse size={21} strokeWidth={1.6} /></span>
-          <span>NeuroCardio<small>THE RHYTHM RESEARCH DESK</small></span>
-        </Link>
-        <nav aria-label="Main navigation">
-          <a href="#approach">Approach</a>
-          <a href="#method">Method</a>
-          <a href="#dataset">Research data</a>
-        </nav>
-        <Link className="nav-workspace" to="/app">Open workspace <ArrowUpRight size={15} /></Link>
-      </header>
+      <TopNav extra={<><a href="#approach">APPROACH</a><a href="#method">METHOD</a><a href="#dataset">RESEARCH DATA</a></>} />
 
       <section className="home-hero">
         <div className="hero-copy">
           <div className="home-kicker"><span /> A LOCAL ECG RESEARCH WORKSPACE</div>
-          <h1>Every heartbeat<br />has a <em>story.</em></h1>
+          <h1>From Raw ECG<br />to Clear Decisions</h1>
           <p>NeuroCardio brings ECG signals, beat-level machine learning and human interpretation into one thoughtful research space.</p>
           <div className="hero-actions">
             <Link to="/app" className="button-ink">Enter the workspace <ArrowUpRight size={16} /></Link>
@@ -83,13 +73,17 @@ export default function HomePage() {
           </div>
           <div className="hero-footnote"><span>01 / 04</span><i /> Built for investigation, not diagnosis</div>
         </div>
-        <div className="hero-visual">
-          <div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" />
-          <div className="hero-index">FIG. 01 <span>RHYTHM / FORM</span></div>
-          <div className="hero-heart"><HeartPulse size={43} strokeWidth={1.15} /></div>
-          <HeroTrace />
-          <div className="hero-caption"><span>THE SIGNAL IS THE STARTING POINT</span><b>Listen closely.<br />Look again.</b></div>
-          <span className="hero-stamp">N<span>·</span>C</span>
+        <div className="pf-flow" aria-label="Pipeline: signal, preprocess, CNN-BiLSTM, explain">
+          <span className="pf-corner">PIPELINE</span>
+          <svg className="pf-flow-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M24 22H76M78 26V74M76 78H24M22 74V26" /><path d="M24 24L44 44M76 24L56 44M76 76L56 56M24 76L44 56" />
+          </svg>
+          <div className="pf-node n1"><i>01</i>SIGNAL<small>Raw ECG · 360 Hz</small></div>
+          <div className="pf-node n2"><i>02</i>PREPROCESS<small>Filter · window · z-score</small></div>
+          <div className="pf-node ai">AI<small>CNN-BiLSTM</small></div>
+          <div className="pf-node n4"><i>04</i>EXPLAIN<small>Grad-CAM · IG</small></div>
+          <div className="pf-node n3"><i>03</i>CNN-BiLSTM<small>N · S · V · F</small></div>
+          <div className="pf-flow-trace"><HeroTrace /></div>
         </div>
       </section>
 

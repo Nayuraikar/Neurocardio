@@ -1,0 +1,10 @@
+split,class,total_beats,top_record,top_record_beats,top_record_share
+train,S,693,209,383,0.553
+train,V,2939,208,992,0.338
+train,F,377,208,373,0.989
+val,S,306,201,128,0.418
+val,V,868,223,473,0.545
+val,F,39,223,14,0.359
+test,S,1782,232,1382,0.776
+test,V,3202,233,831,0.26
+test,F,387,213,362,0.935

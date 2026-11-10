@@ -1,10 +1,10 @@
 # Kaggle artifact inventory
 
-Inspected recursively: `/Users/nayana/Downloads/Neurocardio/results` (214 files). Original artifacts were read only; no files in `results/` were changed.
+Inspected recursively: `results/` (214 files). Original artifacts were read only; no files in `results/` were changed.
 
 ## Selection and verification findings
 
-- The matching notebook is `/Users/nayana/Downloads/ecg-aiml (1).ipynb` (53 cells). Its model selection code chooses the highest validation macro-F1 among BiLSTM variants and exports `neurocardio_final.keras`. The output config says the chosen variant is `bilstm_aug_sqrtw` (CNN-BiLSTM + training-only augmentation, square-root weighted cross entropy).
+- The matching notebook is the source training notebook (not included) (53 cells). Its model selection code chooses the highest validation macro-F1 among BiLSTM variants and exports `neurocardio_final.keras`. The output config says the chosen variant is `bilstm_aug_sqrtw` (CNN-BiLSTM + training-only augmentation, square-root weighted cross entropy).
 - `neurocardio_final.keras` and `bilstm_aug_sqrtw.keras` have identical `config.json` and `model.weights.h5` SHA-256 values; only Keras save metadata differs. The final export is therefore the selected checkpoint. SHA-256 of the complete final file: `0e7083d56c31a4e43f6cd332b375b8480446485b60b80f52c3c7c5380508becc`.
 - The exported model config identifies Keras 3.13.2, Functional `cnn_bilstm`, one input `ecg_input` shaped `(batch, 720, 1)`, one softmax output `probs` of four classes; class order is N, S, V, F. `conv3` and `logits` are named in the XAI config.
 - Exact inference preprocessing in the exported config/notebook: 360 Hz; 720 samples (2 s), centered at the R peak (360 samples either side); apply a fourth-order Butterworth 0.5–40 Hz zero-phase SOS bandpass to the full continuous signal before segmentation; per-window z-score with epsilon `1e-8`; raw softmax argmax is the primary decision rule. Augmentation is training-only and is not an inference step.

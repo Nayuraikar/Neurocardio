@@ -1,0 +1,32 @@
+{
+  "model": "bilstm_aug_sqrtw",
+  "temperature": 1.3,
+  "fitted_on": "validation only",
+  "targets_selective_risk": {
+    "conservative": 0.01,
+    "balanced": 0.03,
+    "permissive": 0.05
+  },
+  "operating_points": {
+    "conservative": {
+      "tau": 0.988919191919192,
+      "margin": 0.0
+    },
+    "balanced": {
+      "tau": 0.8326666666666667,
+      "margin": 0.0
+    },
+    "permissive": {
+      "tau": 0.6461717171717172,
+      "margin": 0.2
+    }
+  },
+  "outcomes": [
+    "N",
+    "S",
+    "V",
+    "F",
+    "HUMAN_REVIEW"
+  ],
+  "caveat": "validation S/F beats come from very few records; thresholds are unstable and unproven on new patients"
+}

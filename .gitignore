@@ -15,26 +15,19 @@ dist/
 .env.*
 !.env.example
 
-# Local databases
+# Runtime data (SQLite DB, uploads, generated reports)
+backend/data/
 *.db
 *.sqlite
 *.sqlite3
 
-# Model weights and generated ML outputs
-*.keras
-*.h5
-*.hdf5
-*.npy
-*.npz
-*.pkl
-*.joblib
-
-# Research data and generated results
-results/
-data/
-datasets/
-outputs/
-runs/
+# Large research artifacts (not needed to run the app; >100MB npz exceeds GitHub limit)
+results/*.keras
+results/*.npy
+results/*.npz
+results/*.split
+results/__results___files/
+# Pass: backend/models/* and results/mitdb/ stay tracked
 
 # OS / editor
 .DS_Store

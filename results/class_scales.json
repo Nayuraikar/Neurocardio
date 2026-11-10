@@ -1,0 +1,11 @@
+{
+  "model": "bilstm_aug_sqrtw",
+  "scales_N_S_V_F": [
+    1.0,
+    1.832620618539814,
+    1.0,
+    0.712551335151499
+  ],
+  "tuned_on": "validation",
+  "status": "ablation only; not applied in the exported model"
+}

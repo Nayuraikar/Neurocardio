@@ -1,0 +1,166 @@
+{
+    "sampling_frequency": 360,
+    "window_size": 720,
+    "window_duration_seconds": 2.0,
+    "window_alignment": "centred on the annotated / detected R-peak (360 samples before, 360 after)",
+    "lead": "MLII",
+    "bandpass_filter": {
+        "type": "butterworth",
+        "order": 4,
+        "low_hz": 0.5,
+        "high_hz": 40,
+        "zero_phase": true,
+        "note": "apply to the full continuous recording BEFORE cutting windows"
+    },
+    "normalization": "per_window_zscore",
+    "normalization_epsilon": 1e-08,
+    "classes": [
+        "N",
+        "S",
+        "V",
+        "F"
+    ],
+    "aami_mapping": {
+        "N": "N",
+        "L": "N",
+        "R": "N",
+        "e": "N",
+        "j": "N",
+        "A": "S",
+        "a": "S",
+        "J": "S",
+        "S": "S",
+        "V": "V",
+        "E": "V",
+        "F": "F"
+    },
+    "selected_model": "bilstm_aug_sqrtw",
+    "selection_rule": "highest validation macro-F1 among CNN-BiLSTM variants; not changed after viewing test results",
+    "model_description": [
+        "CNN-BiLSTM + Aug",
+        "Sqrt-weighted CE"
+    ],
+    "model_inputs": [
+        "ecg_input (720,1)"
+    ],
+    "inference_mode": "per-beat",
+    "rr_features": null,
+    "augmentation_training_only": {
+        "copies_per_class_incl_original": {
+            "S": 2,
+            "F": 4
+        },
+        "amplitude_scale_uniform": [
+            0.9,
+            1.1
+        ],
+        "gaussian_noise_sd_on_zscored_window": 0.03,
+        "baseline_wander_amplitude_uniform": [
+            0.0,
+            0.1
+        ],
+        "baseline_wander_freq_hz_uniform": [
+            0.15,
+            0.5
+        ],
+        "baseline_wander_phase": "uniform [0, 2*pi]",
+        "time_shift_samples_uniform_int": [
+            -15,
+            15
+        ],
+        "time_shift_ms": 41.7,
+        "time_shift_method": "np.roll (circular)",
+        "applied_to": "training split only (and each CV fold's training folds only)",
+        "RR_features": "copied unchanged from the source beat"
+    },
+    "decision_rule": "raw argmax of softmax probabilities (primary)",
+    "class_probability_scales_N_S_V_F_ABLATION_NOT_APPLIED": [
+        1.0,
+        1.832620618539814,
+        1.0,
+        0.712551335151499
+    ],
+    "split": {
+        "train_records": [
+            "101",
+            "106",
+            "109",
+            "112",
+            "115",
+            "116",
+            "118",
+            "119",
+            "122",
+            "203",
+            "207",
+            "208",
+            "209",
+            "215",
+            "220",
+            "230"
+        ],
+        "validation_records": [
+            "108",
+            "114",
+            "124",
+            "201",
+            "202",
+            "205",
+            "223"
+        ],
+        "test_records": [
+            "100",
+            "103",
+            "105",
+            "111",
+            "113",
+            "117",
+            "121",
+            "123",
+            "200",
+            "210",
+            "212",
+            "213",
+            "214",
+            "219",
+            "221",
+            "222",
+            "228",
+            "231",
+            "232",
+            "233",
+            "234"
+        ],
+        "subject_groups_merged": {
+            "202": "201"
+        },
+        "excluded_paced_records": [
+            "102",
+            "104",
+            "107",
+            "217"
+        ]
+    },
+    "evaluation_notes": [
+        "Fixed patient-held-out test: single split, raw argmax is the primary result.",
+        "Grouped 5-fold CV: 3 folds train / 1 fold validation / 1 fold test per iteration (60/20/20), pooled out-of-fold. The CV pool includes the original test patients, so the original test set is not untouched relative to the full workflow.",
+        "F and S recall are concentrated in a few records; see per-record CV audit.",
+        "Not evidence of a clinically reliable S/F classifier."
+    ],
+    "excluded_annotation_symbols": {
+        "+": 1173,
+        "<edge>": 110,
+        "~": 573,
+        "|": 131,
+        "Q": 15,
+        "x": 193,
+        "[": 6,
+        "!": 472,
+        "]": 6,
+        "\"": 437
+    },
+    "xai_layers": {
+        "gradcam_layer": "conv3",
+        "logits_layer": "logits"
+    }
+}

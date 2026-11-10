@@ -1,0 +1,80 @@
+{
+  "seed": 42,
+  "method": "constrained annotation-stratified patient-wise split",
+  "assignments_drawn": 50000,
+  "subject_groups": 43,
+  "uses_model_predictions": false,
+  "min_train_S_V_F": [
+    500,
+    1500,
+    150
+  ],
+  "min_eval_S_V_F": [
+    100,
+    300,
+    15
+  ],
+  "selection_rule": "maximise min(F_val, F_test), then min(S_val, S_test)",
+  "val_counts_N_S_V_F": [
+    13408,
+    306,
+    868,
+    39
+  ],
+  "test_counts_N_S_V_F": [
+    42198,
+    1782,
+    3202,
+    387
+  ],
+  "train_records": [
+    "101",
+    "106",
+    "109",
+    "112",
+    "115",
+    "116",
+    "118",
+    "119",
+    "122",
+    "203",
+    "207",
+    "208",
+    "209",
+    "215",
+    "220",
+    "230"
+  ],
+  "val_records": [
+    "108",
+    "114",
+    "124",
+    "201",
+    "202",
+    "205",
+    "223"
+  ],
+  "test_records": [
+    "100",
+    "103",
+    "105",
+    "111",
+    "113",
+    "117",
+    "121",
+    "123",
+    "200",
+    "210",
+    "212",
+    "213",
+    "214",
+    "219",
+    "221",
+    "222",
+    "228",
+    "231",
+    "232",
+    "233",
+    "234"
+  ]
+}

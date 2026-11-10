@@ -13,3 +13,17 @@ from app.ml.inference import ECGClassifier
 @pytest.fixture(scope="session")
 def model():
     return ECGClassifier()
+
+
+def pytest_collection_modifyitems(config, items):
+    import inspect
+    ref = BACKEND.parent / "results" / "test_examples_for_xai.npz"
+    if ref.exists():
+        return
+    skip = pytest.mark.skip(reason="results/test_examples_for_xai.npz not in repo (too large for GitHub)")
+    for item in items:
+        try:
+            if "test_examples_for_xai" in inspect.getsource(item.function):
+                item.add_marker(skip)
+        except (AttributeError, OSError, TypeError):
+            pass
