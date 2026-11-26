@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useApi } from '../../api/useApi'
 import type { Beat, RecordInfo } from '../../api/types'
 import { classFill, classText, CLASS_CODES, CLASSES } from '../../theme/theme'
@@ -13,13 +13,16 @@ function Navigator({ record, beats, view, onView, selected }: { record: RecordIn
   const q = useApi<{ min: number[]; max: number[] }>(`/recordings/${record.id}/envelope`)
   const dur = record.duration_seconds
   const X = (t: number) => L + t / dur * (W - L - R)
-  let path = ''
-  if (q.data) {
+  const path = useMemo(() => {
+    if (!q.data) return ''
     const [lo] = extent(q.data.min), [, hi] = extent(q.data.max)
     const n = q.data.min.length
     const Y = (v: number) => 4 + (1 - (v - lo) / (hi - lo)) * 32
-    path = q.data.min.map((v, i) => `M${(L + i / n * (W - L - R)).toFixed(1)} ${Y(v).toFixed(1)}V${Y(q.data!.max[i]).toFixed(1)}`).join('')
-  }
+    const max = q.data.max
+    return q.data.min.map((v, i) => `M${(L + i / n * (W - L - R)).toFixed(1)} ${Y(v).toFixed(1)}V${Y(max[i]).toFixed(1)}`).join('')
+  }, [q.data])
+  const marks = useMemo(() => beats.filter(b => b.prediction.predicted_class !== 'N').map(b =>
+    <rect key={b.id} x={L + b.timestamp_seconds / dur * (W - L - R)} y={40} width={1.4} height={7} fill={classFill(b.prediction.predicted_class)} />), [beats, dur])
   const move = (clientX: number, el: Element) => {
     const r = el.getBoundingClientRect()
     const t = ((clientX - r.left) / r.width * W - L) / (W - L - R) * dur
@@ -31,7 +34,7 @@ function Navigator({ record, beats, view, onView, selected }: { record: RecordIn
     onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); move(e.clientX, e.currentTarget) }}
     onPointerMove={e => { if (e.buttons === 1) move(e.clientX, e.currentTarget) }}>
     <path d={path} stroke="#666" strokeWidth="1" fill="none" />
-    {beats.filter(b => b.prediction.predicted_class !== 'N').map(b => <rect key={b.id} x={X(b.timestamp_seconds)} y={40} width={1.4} height={7} fill={classFill(b.prediction.predicted_class)} />)}
+    {marks}
     {selected && <line x1={X(selected.timestamp_seconds)} x2={X(selected.timestamp_seconds)} y1={0} y2={48} stroke="#000" />}
     <rect x={X(view.a)} y={1} width={Math.max(4, X(view.a + view.span) - X(view.a))} height={46} fill="var(--green)" fillOpacity=".14" stroke="var(--green)" />
   </svg>
