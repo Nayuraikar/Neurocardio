@@ -18,7 +18,7 @@ export default function OverviewPage() {
   return <>
     <section className="hero">
       <h1>Interpretable AI-powered ECG analysis</h1>
-      <p className="muted">For research use. The model classifies individual 2-second windows. It does not diagnose a patient or a recording.</p>
+      <p className="muted">For research use. The model classifies individual {config.data ? `${config.data.window_samples / config.data.sampling_rate_hz}-second ` : ''}windows. It does not diagnose a patient or a recording.</p>
       {config.data && <p className="small muted">Loaded model: <span data-source="config#architecture">{config.data.architecture}</span> ·
         input <span data-source="config#input_shape">{config.data.input_shape}</span> · <span data-source="config#normalization">{config.data.normalization}</span></p>}
     </section>

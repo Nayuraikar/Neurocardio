@@ -8,6 +8,7 @@ import { SplitNote } from '../components/SplitNote'
 import { Empty, Load } from '../components/states'
 import { Card, ClassBadge, PageHead, ProbBars } from '../components/ui'
 import { WindowTable } from '../components/WindowTable'
+import { Playback } from '../components/waveform/Playback'
 import { clampView, type View } from '../components/waveform/useChunk'
 import { WaveformViewer } from '../components/waveform/WaveformViewer'
 import { useRecording } from '../context/RecordingContext'
@@ -18,6 +19,11 @@ function Inner({ analysis, record, beats }: { analysis: Analysis; record: Record
   const centre = (t: number, span: number) => clampView(t - span / 2, span, record.duration_seconds)
   const [view, setView] = useState<View>(() => centre(selected?.timestamp_seconds ?? 0, 8))
   const [filtered, setFiltered] = useState(true)
+  const [cursor, setCursor] = useState<number | null>(null)
+  const follow = (t: number) => {
+    setCursor(t)
+    setView(v => t < v.a || t > v.a + v.span * 0.8 ? clampView(t - v.span * 0.2, v.span, record.duration_seconds) : v)
+  }
   const select = (b: Beat) => {
     setWindow(b.beat_index)
     setView(v => b.timestamp_seconds < v.a + 1 || b.timestamp_seconds > v.a + v.span - 1 ? centre(b.timestamp_seconds, v.span) : v)
@@ -33,7 +39,9 @@ function Inner({ analysis, record, beats }: { analysis: Analysis; record: Record
     <Card title={record.filename} aside={<div className="row" role="group" aria-label="Signal version">
       <button type="button" aria-pressed={!filtered} onClick={() => setFiltered(false)}>Raw</button>
       <button type="button" aria-pressed={filtered} onClick={() => setFiltered(true)}>Bandpass filtered</button></div>}>
-      <WaveformViewer record={record} beats={beats} filtered={filtered} view={view} onView={setView} selected={selected} onSelect={select} />
+      <WaveformViewer record={record} beats={beats} filtered={filtered} view={view} onView={setView} selected={selected} onSelect={select} cursor={cursor} />
+      <Playback duration={record.duration_seconds} beats={beats} cursor={cursor} onCursor={follow} start={selected?.timestamp_seconds ?? 0}
+        onStop={b => { if (b) setWindow(b.beat_index) }} />
     </Card>
     <div className="grid-3">
       <Card title="Selected window">
