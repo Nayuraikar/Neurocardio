@@ -5,6 +5,7 @@ import OverviewLayout from './layouts/OverviewLayout'
 import WorkspaceLayout from './layouts/WorkspaceLayout'
 import { NAV } from './layouts/nav'
 import AnalysisStudio from './pages/AnalysisStudio'
+import Confidence from './pages/Confidence'
 import Overview from './pages/Overview'
 import SignalQuality from './pages/SignalQuality'
 import ThreePanel from './pages/ThreePanel'
@@ -17,6 +18,7 @@ const PAGES: Record<string, React.ReactNode> = {
   '/viewer': <Viewer />,
   '/panels': <ThreePanel />,
   '/quality': <SignalQuality />,
+  '/confidence': <Confidence />,
 }
 
 export default function App() {
