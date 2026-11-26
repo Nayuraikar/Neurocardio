@@ -1,0 +1,9 @@
+{
+  "order": ["N", "S", "V", "F"],
+  "classes": {
+    "N": { "name": "Normal", "colorName": "green", "fill": "#4F7D5C", "text": "#2F5A3C" },
+    "S": { "name": "Supraventricular ectopic", "colorName": "amber", "fill": "#D99A2B", "text": "#7A5200" },
+    "V": { "name": "Ventricular ectopic", "colorName": "coral", "fill": "#D8654C", "text": "#8F301A" },
+    "F": { "name": "Fusion", "colorName": "purple", "fill": "#8B66B3", "text": "#563A7C" }
+  }
+}

@@ -3,7 +3,10 @@ import os
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 PROJECT_DIR = BACKEND_DIR.parent
-DATA_DIR = BACKEND_DIR / "data"
+DATA_DIR = Path(os.getenv("NEUROCARDIO_DATA_DIR") or BACKEND_DIR / "data")
+ARTIFACTS_DIR = Path(os.getenv("NEUROCARDIO_ARTIFACTS_DIR") or BACKEND_DIR / "artifacts")
+SPLITS_DIR = BACKEND_DIR / "splits"
+CLASS_COLORS_PATH = PROJECT_DIR / "frontend" / "src" / "theme" / "classColors.json"
 MODEL_PATH = BACKEND_DIR / "models" / "neurocardio_final.keras"
 CONFIG_PATH = BACKEND_DIR / "models" / "preprocessing_config.json"
 RESULTS_DIR = PROJECT_DIR / "results"

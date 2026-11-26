@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.config import CONFIG_PATH, PREPROCESSING_VERSION, RESULTS_DIR
+from app.api.deps import get_db
 from app.core.errors import ServiceError
 from app.ml.explainability import ModelExplainer, compute_explanation_cache_key
 from app.ml.preprocessing import extract_windows, filter_continuous
@@ -17,20 +17,11 @@ from app.models import Analysis, Beat, Explanation, ECGRecord, Review
 from app.repositories.queries import get_analysis, get_beat
 from app.schemas.api import AnalysisOut, BeatOut, RecordOut, ReviewIn, ReviewOut
 from app.services.analysis_service import run_analysis
-from app.services.model_info import read_model_info
 from app.services.recording_service import upload_recording
 from app.services.report_service import generate_report
 from app.utils.serializers import analysis_dict, beat_dict, review_dict
 
-router = APIRouter(prefix="/api/v1")
-
-
-def get_db(request: Request):
-    db = request.app.state.SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+router = APIRouter()
 
 
 @router.get("/health")
@@ -38,18 +29,6 @@ def health(request: Request):
     classifier = request.app.state.classifier
     return {"status": "ok", "model_loaded": classifier is not None,
             "model_sha256": classifier.sha256 if classifier else None}
-
-
-@router.get("/model-info")
-def model_info(request: Request):
-    info = read_model_info(request.app.state.results_dir)
-    classifier = request.app.state.classifier
-    config = request.app.state.config
-    return {**info, "input_shape": [None, 720, 1], "output_shape": [None, 4],
-            "classes": config["classes"], "sampling_rate": config["sampling_frequency"],
-            "lead": config["lead"], "rr_features": config["rr_features"],
-            "model_sha256": classifier.sha256, "config_sha256": request.app.state.config_sha256,
-            "preprocessing_version": PREPROCESSING_VERSION}
 
 
 @router.post("/ecg/upload", response_model=RecordOut)

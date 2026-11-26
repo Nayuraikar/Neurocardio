@@ -50,16 +50,10 @@ def ensure_analysis(client):
     return client._nc_analysis
 
 
-def test_health_and_model_info_use_loaded_artifacts(client):
+def test_health_uses_loaded_model(client):
     health = client.get("/api/v1/health")
     assert health.status_code == 200 and health.json()["model_loaded"] is True
-    info = client.get("/api/v1/model-info")
-    assert info.status_code == 200
-    payload = info.json()
-    assert payload["model"] == "bilstm_aug_sqrtw"
-    assert payload["classes"] == ["N", "S", "V", "F"]
-    assert payload["rr_features"] is None
-    assert payload["test_metrics"]["class_metrics"]["S"]["recall"] == pytest.approx(0.09652076318742986)
+    assert client.get("/api/health").json()["model_loaded"] is True
 
 
 def test_upload_wfdb_preview_and_metadata(client):
