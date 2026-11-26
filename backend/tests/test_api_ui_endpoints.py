@@ -85,3 +85,34 @@ def test_overview_and_review_state(client, analysed):
         withdrawn = client.post("/api/reviews", json={"beat_id": flagged[0]["id"], "reviewed_label": None}).json()
         assert withdrawn["status"] == "withdrawn"
         assert client.get("/api/overview").json()["pending_review_windows"] == before["pending_review_windows"]
+
+
+def test_signal_quality_uses_only_measured_metrics(client, analysed):
+    record, _ = analysed
+    q = client.get(f"/api/recordings/{record['id']}/quality").json()
+    assert [m["key"] for m in q["metrics"]] == ["missing_fraction", "clipping_fraction", "baseline_wander_power_fraction",
+                                               "high_frequency_power_fraction", "invalid_window_fraction"]
+    assert q["overall"] in ("Good", "Moderate", "Poor") and all(0 <= m["value"] <= 1 for m in q["metrics"])
+
+
+def test_quality_measures_on_synthetic_signals():
+    import numpy as np
+    from app.services.quality_service import band_fractions, clipping_fraction
+    t = np.arange(0, 60, 1 / 360)
+    assert clipping_fraction(np.clip(np.sin(2 * np.pi * t), -0.5, 0.5)) > 0.4
+    assert clipping_fraction(np.sin(2 * np.pi * t)) < 0.001
+    low, high = band_fractions(np.sin(2 * np.pi * 0.2 * t), 360)
+    assert low > 0.95 and high < 0.01
+    low, high = band_fractions(np.sin(2 * np.pi * 60 * t), 360)
+    assert high > 0.95 and low < 0.01
+
+
+def test_model_metrics_current_and_missing(client, tmp_path):
+    payload = client.get("/api/model/metrics").json()
+    assert payload["available"] and payload["stale"] == [] and payload["split_facts"]["records_disjoint"]
+    app = create_app(database_url=f"sqlite:///{tmp_path / 'x.sqlite3'}", data_dir=tmp_path, artifacts_dir=tmp_path,
+                     initialize_model=False)
+    with TestClient(app) as empty:
+        assert empty.get("/api/model/metrics").json()["available"] is False
+        (tmp_path / "metrics.json").write_text("{broken")
+        assert "could not be read" in empty.get("/api/model/metrics").json()["problem"]

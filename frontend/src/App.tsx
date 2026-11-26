@@ -6,6 +6,7 @@ import WorkspaceLayout from './layouts/WorkspaceLayout'
 import { NAV } from './layouts/nav'
 import AnalysisStudio from './pages/AnalysisStudio'
 import Overview from './pages/Overview'
+import SignalQuality from './pages/SignalQuality'
 import Viewer from './pages/Viewer'
 
 const Pending = ({ name }: { name: string }) => <Empty title={`${name}: not rebuilt yet`} />
@@ -13,6 +14,7 @@ const Pending = ({ name }: { name: string }) => <Empty title={`${name}: not rebu
 const PAGES: Record<string, React.ReactNode> = {
   '/studio': <AnalysisStudio />,
   '/viewer': <Viewer />,
+  '/quality': <SignalQuality />,
 }
 
 export default function App() {

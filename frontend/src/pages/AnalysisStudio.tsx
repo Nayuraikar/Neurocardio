@@ -11,6 +11,7 @@ import { SplitNote } from '../components/SplitNote'
 import { ErrorState, Load, PartialNotice, ReviewReady, Skeleton, SuccessBanner } from '../components/states'
 import { Card, KeyValues, PageHead } from '../components/ui'
 import { WindowStages } from '../components/WindowStages'
+import { WeaknessNote } from '../components/WeaknessNote'
 import { WindowTable } from '../components/WindowTable'
 import { Trace } from '../components/waveform/Trace'
 import { useRecording } from '../context/RecordingContext'
@@ -99,11 +100,11 @@ function Results({ analysis, record }: { analysis: Analysis; record: RecordInfo 
     <SuccessBanner>Analysis complete. These are window-level model outputs, not a finding about the recording or the patient.</SuccessBanner>
     {record.input_warnings?.map(w => <PartialNotice key={w}>{w}</PartialNotice>)}
     <SplitNote record={record} />
+    <WeaknessNote />
     <div className="grid-2">
       <Card title="Windows by model class">
         <ClassDistribution counts={s.class_counts ?? {}} source="analysis#summary.class_counts" />
         <p><strong>V-class windows present: <span className="num">{s.class_counts?.V ?? 0}</span></strong></p>
-        <p className="notice">S and F are weak classes for this model: on held-out data it misses most of them. See <Link to="/performance">Model Performance</Link>. A count of zero does not show that none are present.</p>
       </Card>
       <Card title="Run details">
         <KeyValues rows={[['Windows analysed', analysis.beat_count.toLocaleString()], ['Flagged for review', String(s.flagged_for_review_count ?? 0)],

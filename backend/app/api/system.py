@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
+from app.services import study_service
 from app.services.model_service import model_config
 
 router = APIRouter()
@@ -23,6 +24,11 @@ def status(request: Request, db: Session = Depends(get_db)):
     return {"api": "ok", "model_loaded": classifier is not None, "database_ok": database_ok,
             "model_sha256": classifier.sha256 if classifier else None,
             "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+
+
+@router.get("/model/metrics")
+def metrics(request: Request):
+    return study_service.model_metrics(request.app.state)
 
 
 @router.get("/model/config")

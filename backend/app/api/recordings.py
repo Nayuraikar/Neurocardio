@@ -14,6 +14,7 @@ from app.ml.preprocessing import LEFT_SAMPLES, WINDOW_SAMPLES, extract_windows, 
 from app.models import Analysis, Beat, ECGRecord, Explanation
 from app.services.analysis_service import create_analysis, execute_analysis
 from app.services.overview_service import overview
+from app.services.quality_service import assess
 from app.services.review_service import pending_counts, signed_off
 from app.utils.serializers import analysis_dict, beat_dict, record_dict
 
@@ -104,6 +105,18 @@ def window(record_id: str, sample: int = Query(..., ge=0), db: Session = Depends
             "raw": raw[lo:hi].astype(float).tolist(), "filtered": filtered[lo:hi].astype(float).tolist(),
             "model_input": z.astype(float).tolist(),
             "stats": {"raw": stats(raw[lo:hi]), "filtered": stats(filtered[lo:hi]), "model_input": stats(z)}}
+
+
+@router.get("/recordings/{record_id}/quality")
+def quality(record_id: str, analysis_id: str | None = None, db: Session = Depends(get_db)):
+    record = _record(db, record_id)
+    analysis = _latest(db, record_id, analysis_id)
+    raw, filtered = _filtered(record)
+    positions = db.scalars(select(Beat.sample_index).where(Beat.analysis_id == analysis.id)).all()
+    # edge beats were not stored as windows; they count as invalid beat positions
+    edges = [0] * analysis.skipped_edge_count
+    return {"analysis_id": analysis.id, "lead": record.lead,
+            **assess(raw, filtered, record.sampling_rate, np.asarray([*positions, *edges], dtype=np.int64))}
 
 
 @router.post("/analyze", status_code=202)
