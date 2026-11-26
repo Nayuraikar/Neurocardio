@@ -5,3 +5,6 @@ scipy
 scikit-learn
 tensorflow
 keras>=3.0
+PyWavelets
+joblib
+matplotlib

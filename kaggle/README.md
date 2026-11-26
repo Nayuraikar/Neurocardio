@@ -1,33 +1,39 @@
-# NeuroCardio model-improvement track on Kaggle
+# Multi-database study on Kaggle
+
+Protocol: `docs/multidb-protocol.md`. Data counts: `docs/multidb-data-report.md`.
 
 ## Upload
-1. Create a **private** Kaggle Dataset with `neurocardio_kaggle.zip` and `data/neurocardio_dev.npz`.
-2. Do **not** upload `data/neurocardio_test_SEALED.npz` yet.
-   (Data derived from the MIT-BIH Arrhythmia Database on PhysioNet; keep its attribution and licence terms.)
-3. Create a notebook from `neurocardio_kaggle.ipynb`, attach the dataset, set Accelerator to GPU T4.
+1. Create a **private** Kaggle Dataset with `neurocardio_kaggle.zip` and `data/multidb_dev.npz`.
+2. Do **not** upload the two `*_SEALED.npz` files yet.
+   Data are derived from the MIT-BIH Arrhythmia, MIT-BIH Supraventricular Arrhythmia and St Petersburg INCART databases
+   on PhysioNet. Keep their citations and licence terms.
+3. Create a notebook from `neurocardio_kaggle.ipynb`, attach the dataset, set Accelerator to **GPU T4 x2**.
 
-## Run one stage per session
-Set `STAGE` in cell 4, then use **Save Version -> Save & Run All (Commit)**. The committed run keeps `/kaggle/working`
-as the notebook output. An interactive session that dies can lose `/kaggle/working`.
+`neurocardio_dev.npz` and `neurocardio_test_SEALED.npz` belong to the old single-database track. Do not upload them.
 
-For stage 2 and 3, attach the **previous stage's notebook output** as an input (Add Input -> Your Work), or upload the
-downloaded results zip to a dataset. Earlier results are found under `/kaggle/input` and restored automatically.
-Order: 1, then 2, then 3. Stage 1 first: it contains the reproduction gate, and nothing else counts until it passes.
+## Run
+Run cells 1-3 interactively first. Cell 3 (smoke) must end with `SMOKE OK`. Then use
+**Save Version -> Save & Run All (Commit)**: a committed run keeps `/kaggle/working`; an interactive session that dies can lose it.
 
-If a stage prints `[TIME BUDGET]`, attach its output and run the same stage again. Finished runs are skipped.
-If stage 1 prints `[STOP] Reproduction failed`, do not continue.
+If it prints `[TIME BUDGET]`, attach that notebook's output as an input (Add Input -> Your Work) and commit again.
+Finished runs are skipped. A run cut off in the middle starts again from epoch 1.
+Registry entries from earlier outputs, including reproduction runs, are merged into `experiments.json` and never removed.
+To carry your earlier reproduction results forward, attach that old notebook output once.
 
-## After stage 3
-Read `analysis/ablation.md`, choose a configuration, then run the final test **once**, by hand. Add a dataset with the
-sealed file, attach the stage 3 output, run cells 1-2 but delete the SEALED check line in cell 2, then:
+Watch the `ms/batch` figure in each epoch line: the estimate assumes 24.1 ms for every architecture.
 
-    !python -u /kaggle/temp/neurocardio/backend/scripts/final_test.py --config <name> [--thresholds] [--ensemble 3|5] \
-        --confirm EVALUATE-TEST-ONCE
+Output: `analysis/multidb/validation_report.md`, `selection.json`, `per_patient_validation.csv`, `risk_coverage.{csv,png}`,
+`experiments.json`, `runs/`, `logs/`.
 
-Names map to ablation rows: `rr_context+thresholds+ensemble5` is `--config rr_context --thresholds --ensemble 5`.
-Save the output (`final/` holds the lock, predictions and report). The script refuses a second configuration,
-but only if the earlier output is attached, so never delete it.
+## Final evaluation: once
+Read the validation report. Decide whether to score the other candidates too (`--secondary-all`); the choice is locked.
+Add a dataset with both `*_SEALED.npz` files, attach the finished study output, run cells 1 and 2 with
+`ALLOW_SEALED = True`, skip cells 3 and 4, then run:
+
+    !python -u /kaggle/temp/neurocardio/backend/scripts/final_test.py --confirm EVALUATE-TEST-ONCE [--secondary-all]
+
+Then run cell 5. Output is in `final_multidb/`. **Keep that output**: the lock only protects you while it is attached.
+If the script is interrupted after predictions are saved, rerun it with the same arguments.
 
 ## Bring back
-Download `neurocardio_results_stage*.zip`. It holds `experiments.json` (every run, including failed and interrupted
-ones), `analysis/`, per-run configs with class weights, histories, predictions and models.
+`neurocardio_results.zip`.

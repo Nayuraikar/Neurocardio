@@ -77,7 +77,7 @@ def restore(env, resume_from: list[str]) -> None:
             src = tmp
         if not (src / "experiments.json").exists() or src.resolve() == env.out.resolve():
             continue
-        for sub in ("runs", "analysis", "final"):
+        for sub in ("runs", "analysis", "final", "final_multidb"):
             if (src / sub).exists():
                 for item in (src / sub).iterdir():
                     dst = env.out / sub / item.name

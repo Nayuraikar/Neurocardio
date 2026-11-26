@@ -27,7 +27,9 @@ Run: python -u train.py --variant baseline --seed 42 [--data FILE] [--splits DIR
 from __future__ import annotations
 
 import argparse
+import contextlib
 import csv
+import fcntl
 import hashlib
 import json
 import os
@@ -238,8 +240,25 @@ def read_registry(env: Env) -> dict:
     return json.loads(env.registry.read_text()) if env.registry.exists() else {"runs": []}
 
 
+@contextlib.contextmanager
+def registry_lock(env: Env):
+    """Two training processes (one per GPU) share one registry."""
+    env.registry.parent.mkdir(parents=True, exist_ok=True)
+    with open(env.registry.with_name("experiments.lock"), "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
 def register(env: Env, entry: dict, new_attempt: bool = False) -> None:
     """Insert or update one run, immediately. Earlier attempts (failed, interrupted) are kept."""
+    with registry_lock(env):
+        _register(env, entry, new_attempt)
+
+
+def _register(env: Env, entry: dict, new_attempt: bool) -> None:
     data = read_registry(env)
     old = next((r for r in data["runs"] if r["run_id"] == entry["run_id"]), None)
     attempts = list(old.get("previous_attempts", [])) if old else []

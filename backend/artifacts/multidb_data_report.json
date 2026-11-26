@@ -1,0 +1,327 @@
+{
+ "preprocessing_version": "mitdb-360hz-butter4-0.5-40-window720-zscore-eps1e-8-v1",
+ "source": {
+  "svdb": {
+   "records": 78,
+   "files_checksum_verified": 234
+  },
+  "incartdb": {
+   "records": 75,
+   "files_checksum_verified": 226
+  }
+ },
+ "lead": {
+  "mitdb": "MLII",
+  "svdb": "ECG1",
+  "incartdb": "II"
+ },
+ "databases": {
+  "mitdb": {
+   "records": 43,
+   "patients": 43,
+   "windows": {
+    "N": 88388,
+    "S": 2652,
+    "V": 6807,
+    "F": 800
+   },
+   "total": 98647,
+   "source_fs_hz": 360.0,
+   "dropped_beat_symbols_in_usable_records": {
+    "Q": 15
+   },
+   "edge_rejected_beats": 108,
+   "paced_beat_annotations_in_usable_records": 0,
+   "interpolated_invalid_samples": 0,
+   "annotation_to_peak_ms": {
+    "median_signed": 0.0,
+    "median_abs": 2.7777777777777777,
+    "p90_abs": 2.7777777777777777,
+    "fraction_over_42ms": 0.006771620018855109
+   }
+  },
+  "svdb": {
+   "records": 78,
+   "patients": 78,
+   "windows": {
+    "N": 162163,
+    "S": 12193,
+    "V": 9933,
+    "F": 23
+   },
+   "total": 184312,
+   "source_fs_hz": 128.0,
+   "dropped_beat_symbols_in_usable_records": {
+    "Q": 79,
+    "B": 1
+   },
+   "edge_rejected_beats": 191,
+   "paced_beat_annotations_in_usable_records": 0,
+   "interpolated_invalid_samples": 0,
+   "annotation_to_peak_ms": {
+    "median_signed": 16.666666666666668,
+    "median_abs": 16.666666666666668,
+    "p90_abs": 30.555555555555557,
+    "fraction_over_42ms": 0.04389838968705239
+   }
+  },
+  "incartdb": {
+   "records": 75,
+   "patients": 32,
+   "windows": {
+    "N": 153516,
+    "S": 1958,
+    "V": 19995,
+    "F": 219
+   },
+   "total": 175688,
+   "source_fs_hz": 257.0,
+   "dropped_beat_symbols_in_usable_records": {
+    "Q": 6,
+    "n": 32,
+    "B": 1
+   },
+   "edge_rejected_beats": 180,
+   "paced_beat_annotations_in_usable_records": 0,
+   "interpolated_invalid_samples": 0,
+   "annotation_to_peak_ms": {
+    "median_signed": 0.0,
+    "median_abs": 5.555555555555555,
+    "p90_abs": 19.444444444444443,
+    "fraction_over_42ms": 0.00885660944401439
+   }
+  }
+ },
+ "splits": {
+  "train": {
+   "records": 111,
+   "patients": 93,
+   "windows": {
+    "N": 227679,
+    "S": 11467,
+    "V": 19678,
+    "F": 507
+   },
+   "total": 259331,
+   "concentration": {
+    "S": {
+     "total": 11467,
+     "patients_with_any": 75,
+     "top_patient": "svdb:865",
+     "top_share": 0.15854190285166128
+    },
+    "F": {
+     "total": 507,
+     "patients_with_any": 10,
+     "top_patient": "mitdb:208",
+     "top_share": 0.7337278106508875
+    }
+   },
+   "by_database": {
+    "mitdb": {
+     "records": 16,
+     "patients": 16,
+     "windows": {
+      "N": 34478,
+      "S": 692,
+      "V": 2937,
+      "F": 376
+     },
+     "total": 38483
+    },
+    "svdb": {
+     "records": 62,
+     "patients": 62,
+     "windows": {
+      "N": 129026,
+      "S": 9594,
+      "V": 7894,
+      "F": 18
+     },
+     "total": 146532
+    },
+    "incartdb": {
+     "records": 33,
+     "patients": 15,
+     "windows": {
+      "N": 64175,
+      "S": 1181,
+      "V": 8847,
+      "F": 113
+     },
+     "total": 74316
+    }
+   }
+  },
+  "validation": {
+   "records": 38,
+   "patients": 28,
+   "windows": {
+    "N": 79739,
+    "S": 2938,
+    "V": 7102,
+    "F": 79
+   },
+   "total": 89858,
+   "concentration": {
+    "S": {
+     "total": 2938,
+     "patients_with_any": 25,
+     "top_patient": "svdb:861",
+     "top_share": 0.19366916269571136
+    },
+    "F": {
+     "total": 79,
+     "patients_with_any": 13,
+     "top_patient": "incartdb:p16",
+     "top_share": 0.379746835443038
+    }
+   },
+   "by_database": {
+    "mitdb": {
+     "records": 5,
+     "patients": 5,
+     "windows": {
+      "N": 9702,
+      "S": 123,
+      "V": 651,
+      "F": 36
+     },
+     "total": 10512
+    },
+    "svdb": {
+     "records": 16,
+     "patients": 16,
+     "windows": {
+      "N": 33137,
+      "S": 2599,
+      "V": 2039,
+      "F": 5
+     },
+     "total": 37780
+    },
+    "incartdb": {
+     "records": 17,
+     "patients": 7,
+     "windows": {
+      "N": 36900,
+      "S": 216,
+      "V": 4412,
+      "F": 38
+     },
+     "total": 41566
+    }
+   }
+  },
+  "test_ds2": {
+   "records": 22,
+   "patients": 22,
+   "windows": {
+    "N": 44208,
+    "S": 1837,
+    "V": 3219,
+    "F": 388
+   },
+   "total": 49652,
+   "concentration": {
+    "S": {
+     "total": 1837,
+     "patients_with_any": 16,
+     "top_patient": "mitdb:232",
+     "top_share": 0.7523135547087643
+    },
+    "F": {
+     "total": 388,
+     "patients_with_any": 7,
+     "top_patient": "mitdb:213",
+     "top_share": 0.9329896907216495
+    }
+   },
+   "by_database": {
+    "mitdb": {
+     "records": 22,
+     "patients": 22,
+     "windows": {
+      "N": 44208,
+      "S": 1837,
+      "V": 3219,
+      "F": 388
+     },
+     "total": 49652
+    }
+   }
+  },
+  "test_incart": {
+   "records": 25,
+   "patients": 10,
+   "windows": {
+    "N": 52441,
+    "S": 561,
+    "V": 6736,
+    "F": 68
+   },
+   "total": 59806,
+   "concentration": {
+    "S": {
+     "total": 561,
+     "patients_with_any": 7,
+     "top_patient": "incartdb:p10",
+     "top_share": 0.7254901960784313
+    },
+    "F": {
+     "total": 68,
+     "patients_with_any": 6,
+     "top_patient": "incartdb:p02",
+     "top_share": 0.38235294117647056
+    }
+   },
+   "by_database": {
+    "incartdb": {
+     "records": 25,
+     "patients": 10,
+     "windows": {
+      "N": 52441,
+      "S": 561,
+      "V": 6736,
+      "F": 68
+     },
+     "total": 59806
+    }
+   }
+  }
+ },
+ "excluded_records": {
+  "mitdb": {
+   "102": "paced record (AAMI practice)",
+   "104": "paced record (AAMI practice)",
+   "107": "paced record (AAMI practice)",
+   "217": "paced record (AAMI practice)"
+  },
+  "svdb": {},
+  "incartdb": {}
+ },
+ "rules": {
+  "paced": "MIT-BIH 102/104/107/217; any record with > 1% paced-beat symbols (/ f)",
+  "unusable": "fewer than 100 mapped beats, or > 10% of beat annotations without an N/S/V/F mapping",
+  "same_subject": {
+   "mitdb/201": "same subject as DS2 record 202"
+  }
+ },
+ "files": {
+  "multidb_dev.npz": {
+   "windows": 349189,
+   "bytes": 935860181,
+   "sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86"
+  },
+  "multidb_test_ds2_SEALED.npz": {
+   "windows": 49652,
+   "bytes": 133078645,
+   "sha256": "c3d800aa3a7a1cc053de1f0ad67cdf11347807e96761c8b2dce4651c009f765d"
+  },
+  "multidb_test_incart_SEALED.npz": {
+   "windows": 59806,
+   "bytes": 160248305,
+   "sha256": "ae7e4b54020d3d333e2c834e7b2bf6d8d845f274f6085c4f3283695260652eb2"
+  }
+ }
+}

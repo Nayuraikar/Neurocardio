@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 import numpy as np
-from sklearn.metrics import confusion_matrix
+from scipy.optimize import minimize_scalar
 
 CLASSES = ["N", "S", "V", "F"]
 GRID = np.linspace(-4, 4, 33)                          # log2 probability scales; N is fixed at 1
 
 
 def cm(y, pred):
-    return confusion_matrix(y, pred, labels=range(4)).astype(np.float64)
+    return np.bincount(4 * np.asarray(y, np.int64) + np.asarray(pred, np.int64), minlength=16).reshape(4, 4).astype(np.float64)
 
 
 def from_cm(c):
@@ -78,3 +78,43 @@ def compare(new_cms: list, base_cms: list, resamples: int = 2000, seed: int = 20
                      "leave_one_record_out_min_gain": float(min(loro)), **passes,
                      "meaningful": bool(all(v for v in passes.values() if v is not None))}
     return out
+
+
+# ------------------------------------------------------------------ calibration
+def temperature(probs, y) -> float:
+    lp = np.log(np.clip(probs, 1e-12, 1))
+
+    def nll(t):
+        z = lp / np.exp(t)
+        z -= z.max(1, keepdims=True)
+        return -(z[np.arange(len(y)), y] - np.log(np.exp(z).sum(1))).mean()
+    return float(np.exp(minimize_scalar(nll, bounds=(-3, 3), method="bounded").x))
+
+
+def scaled(probs, t):
+    z = np.log(np.clip(probs, 1e-12, 1)) / t
+    z -= z.max(1, keepdims=True)
+    p = np.exp(z)
+    return p / p.sum(1, keepdims=True)
+
+
+def calibration(probs, y, bins=15) -> dict:
+    conf, ok = probs.max(1), (probs.argmax(1) == y).astype(float)
+    edges = np.linspace(0, 1, bins + 1)
+    ece = sum(m.mean() * abs(ok[m].mean() - conf[m].mean())
+              for lo, hi in zip(edges[:-1], edges[1:]) if (m := (conf > lo) & (conf <= hi)).any())
+    return {"ece_15": float(ece), "brier": float(((probs - np.eye(4)[y]) ** 2).sum(1).mean()),
+            "nll": float(-np.log(np.clip(probs[np.arange(len(y)), y], 1e-12, 1)).mean())}
+
+
+# ------------------------------------------------------------------ selective review
+def reviewed_mask(confidence, budget: float) -> np.ndarray:
+    """The `budget` share of beats with the lowest confidence (ties broken by position)."""
+    mask = np.zeros(len(confidence), bool)
+    mask[np.argsort(confidence, kind="stable")[:int(round(budget * len(confidence)))]] = True
+    return mask
+
+
+def after_review(y, pred, mask) -> np.ndarray:
+    """Predictions if a PERFECT reviewer corrects every reviewed beat. An upper bound, not a measured workflow."""
+    return np.where(mask, y, pred)
