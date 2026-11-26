@@ -19,6 +19,9 @@ from app.ml.rpeak_detection import annotation_alignment, detect_r_peaks
 from app.models import ECGRecord
 
 
+PACED_SYMBOLS = ("/", "f")
+
+
 def _preview(signal: np.ndarray, fs: float, max_points: int = 1200) -> list[dict]:
     stride = max(1, int(math.ceil(len(signal) / max_points)))
     idx = np.arange(0, len(signal), stride, dtype=np.int64)
@@ -86,7 +89,10 @@ async def upload_recording(files: list[UploadFile], sampling_rate: float | None,
         np.save(stored, values.astype(np.float32))
         record = ECGRecord(id=rid, filename=csv_files[0][0], format="csv", sampling_rate=float(sampling_rate),
                            lead=lead, duration_seconds=len(values) / float(sampling_rate), sample_count=len(values),
-                           signal_path=str(stored), metadata_json={"columns": list(frame.columns), "upload_bytes": total_size})
+                           signal_path=str(stored), metadata_json={"columns": list(frame.columns), "upload_bytes": total_size, "input_warnings": [
+                               "CSV input: signal units are unknown. Beat positions come from the XQRS detector, and paced "
+                               "rhythm cannot be detected."] + ([] if lead == "MLII" else [
+                               f"Column {lead!r} is not labelled MLII. The model was trained on MLII only."])})
     else:
         if not hea_files:
             raise ServiceError(415, "unsupported upload; provide a CSV or WFDB .hea with matching .dat")
@@ -145,11 +151,22 @@ async def upload_recording(files: list[UploadFile], sampling_rate: float | None,
         detected_peaks = _validate_recording(signal, float(rec.fs))
         alignment = None
         atr = atr_files[0] if atr_files else None
+        input_warnings = []
+        if selected_lead != "MLII":
+            input_warnings.append(f"Lead {selected_lead} is not MLII. The model was trained on MLII only, so its output "
+                                  "on this lead has not been evaluated.")
+        if not atr:
+            input_warnings.append("No annotation file: beat positions come from the XQRS detector, and paced rhythm "
+                                  "cannot be detected. Do not use paced recordings.")
         if atr:
             try:
                 ann = wfdb.rdann(str(base), Path(atr[0]).suffix.lstrip("."))
             except Exception as exc:
                 raise ServiceError(422, f"invalid WFDB annotation file {atr[0]}: {exc}") from exc
+            paced = sum(1 for symbol in ann.symbol if symbol in PACED_SYMBOLS)
+            if paced:
+                raise ServiceError(422, f"paced recording rejected: {atr[0]} contains {paced} paced-beat annotations. "
+                                   "Paced rhythms were excluded from training and evaluation.")
             mapping = json.loads(CONFIG_PATH.read_text()).get("aami_mapping", {})
             annotation_positions = np.asarray([p for p, symbol in zip(ann.sample, ann.symbol) if symbol in mapping], dtype=np.int64)
             if len(annotation_positions):
@@ -169,6 +186,7 @@ async def upload_recording(files: list[UploadFile], sampling_rate: float | None,
                            signal_path=str(stored), wfdb_base_path=str(base), annotation_path=annotation_path,
                            metadata_json={"signals": rec.sig_name, "units": rec.units, "header": hea_name,
                                           "has_annotation": bool(atr), "annotation_alignment": alignment,
+                                          "input_warnings": input_warnings,
                                           "annotation_alignment_min_fraction": ANNOTATION_ALIGNMENT_MIN,
                                           "annotation_alignment_tolerance_ms": ANNOTATION_ALIGNMENT_TOLERANCE_MS,
                                           "upload_bytes": total_size})

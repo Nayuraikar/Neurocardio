@@ -1,4 +1,31 @@
-from app.models import Analysis, Beat, Prediction, Review
+import json
+from functools import lru_cache
+from pathlib import Path
+
+from app.core.config import CONFIG_PATH
+from app.models import Analysis, Beat, ECGRecord, Prediction, Review
+
+
+@lru_cache(maxsize=1)
+def _model_splits() -> dict[str, str]:
+    split = json.loads(CONFIG_PATH.read_text())["split"]
+    return {name: part for part in ("train", "validation", "test") for name in split[f"{part}_records"]}
+
+
+def known_split(filename: str) -> str | None:
+    """Split of the loaded model's MIT-BIH record with this file name. A name match only: contents are not compared."""
+    return _model_splits().get(Path(filename).stem)
+
+
+def record_dict(r: ECGRecord) -> dict:
+    meta = r.metadata_json or {}
+    units, signals = meta.get("units"), meta.get("signals")
+    unit = units[signals.index(r.lead)] if units and signals and r.lead in signals else None
+    return {"id": r.id, "filename": r.filename, "format": r.format, "sampling_rate": r.sampling_rate, "lead": r.lead,
+            "duration_seconds": r.duration_seconds, "sample_count": r.sample_count, "uploaded_at": r.uploaded_at,
+            "units": unit, "signals": signals or meta.get("columns"), "has_annotation": bool(r.annotation_path),
+            "input_warnings": meta.get("input_warnings", []),
+            "model_split_by_name": known_split(r.filename) if r.format == "wfdb" else None}
 
 
 def analysis_dict(a: Analysis) -> dict:

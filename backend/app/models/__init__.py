@@ -1,3 +1,3 @@
-from .entities import Analysis, Beat, ECGRecord, Explanation, Prediction, Report, Review
+from .entities import Analysis, AnalysisReview, Beat, ECGRecord, Explanation, Prediction, Report, Review
 
-__all__ = ["Analysis", "Beat", "ECGRecord", "Explanation", "Prediction", "Report", "Review"]
+__all__ = ["Analysis", "AnalysisReview", "Beat", "ECGRecord", "Explanation", "Prediction", "Report", "Review"]

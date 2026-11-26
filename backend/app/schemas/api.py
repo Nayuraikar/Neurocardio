@@ -13,6 +13,11 @@ class RecordOut(BaseModel):
     duration_seconds: float
     sample_count: int
     uploaded_at: datetime
+    units: str | None = None
+    signals: list[str] | None = None
+    has_annotation: bool = False
+    input_warnings: list[str] = Field(default_factory=list)
+    model_split_by_name: str | None = None
     preview: list[dict[str, Any]] = Field(default_factory=list)
 
 

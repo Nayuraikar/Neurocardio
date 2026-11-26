@@ -9,7 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.routes import router
+from app.api.recordings import router as recordings_router
 from app.api.system import router as system_router
+from app.services.overview_service import fail_interrupted_analyses
 from app.core.config import (ARTIFACTS_DIR, CONFIG_PATH, DATA_DIR, DATABASE_URL, LOCAL_FRONTEND_ORIGIN,
                              MAX_UPLOAD_BYTES, MODEL_PATH, RESULTS_DIR)
 from app.core.errors import ServiceError
@@ -48,6 +50,8 @@ def create_app(*, database_url: str = DATABASE_URL, data_dir: Path = DATA_DIR,
         app.state.artifacts_dir = Path(artifacts_dir)
         app.state.max_upload_bytes = int(max_upload_bytes)
         app.state.SessionLocal = SessionLocal
+        with SessionLocal() as db:
+            fail_interrupted_analyses(db)
         yield
         engine.dispose()
 
@@ -57,6 +61,7 @@ def create_app(*, database_url: str = DATABASE_URL, data_dir: Path = DATA_DIR,
     # The UI uses /api; the original routes stay reachable under /api/v1.
     app.include_router(router, prefix="/api")
     app.include_router(system_router, prefix="/api")
+    app.include_router(recordings_router, prefix="/api")
     app.include_router(router, prefix="/api/v1", include_in_schema=False)
 
     @app.exception_handler(ServiceError)

@@ -19,7 +19,7 @@ from app.schemas.api import AnalysisOut, BeatOut, RecordOut, ReviewIn, ReviewOut
 from app.services.analysis_service import run_analysis
 from app.services.recording_service import upload_recording
 from app.services.report_service import generate_report
-from app.utils.serializers import analysis_dict, beat_dict, review_dict
+from app.utils.serializers import analysis_dict, beat_dict, record_dict, review_dict
 
 router = APIRouter()
 
@@ -32,6 +32,7 @@ def health(request: Request):
 
 
 @router.post("/ecg/upload", response_model=RecordOut)
+@router.post("/upload", response_model=RecordOut)
 async def upload_ecg(request: Request, files: list[UploadFile] = File(...), sampling_rate: float | None = Form(None),
                      lead: str | None = Form(None), db: Session = Depends(get_db)):
     try:
@@ -39,7 +40,7 @@ async def upload_ecg(request: Request, files: list[UploadFile] = File(...), samp
                                                   request.app.state.data_dir, request.app.state.max_upload_bytes)
     except ServiceError as exc:
         raise HTTPException(exc.status_code, exc.detail) from exc
-    result = RecordOut.model_validate(record).model_dump(mode="json")
+    result = RecordOut.model_validate(record_dict(record)).model_dump(mode="json")
     result["preview"] = preview
     return result
 
@@ -47,7 +48,7 @@ async def upload_ecg(request: Request, files: list[UploadFile] = File(...), samp
 @router.get("/ecg/records")
 def list_records(db: Session = Depends(get_db), limit: int = Query(100, ge=1, le=500)):
     rows = db.scalars(select(ECGRecord).order_by(ECGRecord.uploaded_at.desc()).limit(limit)).all()
-    return [RecordOut.model_validate(row).model_dump(mode="json") for row in rows]
+    return [RecordOut.model_validate(record_dict(row)).model_dump(mode="json") for row in rows]
 
 
 @router.post("/analyses", response_model=AnalysisOut)
@@ -204,7 +205,7 @@ def create_review(payload: ReviewIn, db: Session = Depends(get_db)):
         raise HTTPException(404, "predicted beat not found")
     row = Review(beat_id=beat.id, original_prediction=beat.prediction.predicted_class,
                  reviewed_label=payload.reviewed_label, note=payload.note, reviewer=payload.reviewer,
-                 status="reviewed")
+                 status="reviewed" if payload.reviewed_label else "withdrawn")
     db.add(row); db.commit(); db.refresh(row)
     return review_dict(row)
 

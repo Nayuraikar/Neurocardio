@@ -4,14 +4,22 @@ import { RecordingProvider } from './context/RecordingContext'
 import OverviewLayout from './layouts/OverviewLayout'
 import WorkspaceLayout from './layouts/WorkspaceLayout'
 import { NAV } from './layouts/nav'
+import AnalysisStudio from './pages/AnalysisStudio'
+import Overview from './pages/Overview'
+import Viewer from './pages/Viewer'
 
 const Pending = ({ name }: { name: string }) => <Empty title={`${name}: not rebuilt yet`} />
 
+const PAGES: Record<string, React.ReactNode> = {
+  '/studio': <AnalysisStudio />,
+  '/viewer': <Viewer />,
+}
+
 export default function App() {
   return <BrowserRouter><RecordingProvider><Routes>
-    <Route element={<OverviewLayout />}><Route path="/" element={<Pending name="Overview" />} /></Route>
+    <Route element={<OverviewLayout />}><Route path="/" element={<Overview />} /></Route>
     <Route element={<WorkspaceLayout />}>
-      {NAV.flatMap(g => g.items).map(([to, label]) => <Route key={to} path={to} element={<Pending name={label} />} />)}
+      {NAV.flatMap(g => g.items).map(([to, label]) => <Route key={to} path={to} element={PAGES[to] ?? <Pending name={label} />} />)}
       <Route path="*" element={<Empty title="Page not found" />} />
     </Route>
   </Routes></RecordingProvider></BrowserRouter>

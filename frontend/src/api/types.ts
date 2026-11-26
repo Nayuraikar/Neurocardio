@@ -20,7 +20,7 @@ export type Analysis = {
 }
 export type RecordInfo = {
   id: string; filename: string; format: string; sampling_rate: number; lead: string; duration_seconds: number; sample_count: number; uploaded_at: string
-  units?: string | null; signals?: string[]; has_annotation?: boolean; input_warnings?: string[]
+  units?: string | null; signals?: string[]; has_annotation?: boolean; input_warnings?: string[]; model_split_by_name?: string | null
 }
 export type RecordingRow = RecordInfo & { latest_analysis: Analysis | null; pending_review_count: number; analysis_reviewed: boolean }
 
