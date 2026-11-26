@@ -1,0 +1,7 @@
+# Preinstalled on Kaggle GPU images. Do NOT pip install these there: replacing TensorFlow can break GPU support.
+# Versions used are recorded in every run's config.json. backend/requirements.txt pins the LOCAL environment.
+numpy
+scipy
+scikit-learn
+tensorflow
+keras>=3.0
