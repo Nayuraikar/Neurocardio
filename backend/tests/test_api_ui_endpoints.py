@@ -202,3 +202,31 @@ def test_dataset_endpoints(client):
     assert [e["label"] for e in examples] == list("NSVF") and all(record_split(e["record"]) == "train" for e in examples)
     assert len(client.get("/api/dataset/records/208/window?class=F&index=2").json()["model_input"]) == 720
     assert client.get("/api/dataset/records/..%2F208/segment").status_code == 404
+
+
+def test_history_sign_off_and_predictions_are_never_overwritten(client, analysed):
+    _, analysis = analysed
+    aid = analysis["id"]
+    before = client.get(f"/api/analyses/{aid}/beats?limit=10000").json()
+    client.post("/api/reviews", json={"beat_id": before[0]["id"], "reviewed_label": "F", "note": "=1+1 <b>x"})
+    assert client.post(f"/api/analyses/{aid}/sign-offs", json={"note": "checked <ok> & done"}).status_code == 200
+    row = next(r for r in client.get("/api/history").json() if r["id"] == aid)
+    assert row["analysis_reviewed"] and not row["needs_review"]
+    client.post(f"/api/analyses/{aid}/sign-offs", json={"status": "reopened"})
+    assert not next(r for r in client.get("/api/history").json() if r["id"] == aid)["analysis_reviewed"]
+    after = client.get(f"/api/analyses/{aid}/beats?limit=10000").json()
+    assert [b["prediction"] for b in before] == [b["prediction"] for b in after]
+
+
+def test_report_sections_pdf_and_csv(client, analysed):
+    _, analysis = analysed
+    aid = analysis["id"]
+    full = client.get(f"/api/reports/{aid}?format=pdf")
+    assert full.status_code == 200 and full.content[:4] == b"%PDF"
+    small = client.get(f"/api/reports/{aid}?format=pdf&sections=recording,limitations&inline=true")
+    assert small.headers["content-disposition"].startswith("inline") and len(small.content) < len(full.content)
+    text = client.get(f"/api/reports/{aid}?format=csv").text
+    assert f"# model_version: {analysis['model_version']}" in text and "# generated_at_utc:" in text and "'=1+1" in text
+    only = client.get(f"/api/reports/{aid}?format=csv&sections=recording").text
+    assert "predicted_class" not in only and "# recording: 101.hea" in only
+    assert client.get(f"/api/reports/{aid}?sections=bogus").status_code == 422

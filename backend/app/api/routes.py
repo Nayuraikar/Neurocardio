@@ -20,7 +20,7 @@ from app.schemas.api import AnalysisOut, BeatOut, RecordOut, ReviewIn, ReviewOut
 from app.services.analysis_service import run_analysis
 from app.services.xai_service import rank_correlation, reference_labels, top_regions
 from app.services.recording_service import upload_recording
-from app.services.report_service import generate_report
+from app.services.report_service import generate_report, parse_sections
 from app.utils.serializers import analysis_dict, beat_dict, record_dict, review_dict
 
 router = APIRouter()
@@ -263,15 +263,20 @@ def create_review(payload: ReviewIn, db: Session = Depends(get_db)):
 
 @router.get("/reports/{analysis_id}")
 def report(analysis_id: str, request: Request, format: str = Query("pdf", pattern="^(pdf|csv)$"),
-           db: Session = Depends(get_db)):
+           sections: str | None = None, inline: bool = False, db: Session = Depends(get_db)):
     try:
-        path, _ = generate_report(db, analysis_id, format, request.app.state.data_dir / "reports")
+        chosen = parse_sections(sections)
+    except KeyError as exc:
+        raise HTTPException(422, str(exc.args[0])) from exc
+    try:
+        path, _ = generate_report(db, analysis_id, format, request.app.state.data_dir / "reports", chosen)
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
     media = "application/pdf" if format == "pdf" else "text/csv"
-    return FileResponse(path, media_type=media, filename=path.name)
+    return FileResponse(path, media_type=media, filename=path.name,
+                        content_disposition_type="inline" if inline else "attachment")
 
 
 @router.get("/reports/{analysis_id}/csv")

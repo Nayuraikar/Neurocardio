@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session, selectinload
 from app.api.deps import get_db
 from app.core.errors import ServiceError
 from app.ml.preprocessing import LEFT_SAMPLES, WINDOW_SAMPLES, extract_windows, filter_continuous
-from app.models import Analysis, Beat, ECGRecord, Explanation
+from app.models import Analysis, AnalysisReview, Beat, ECGRecord, Explanation
+from app.schemas.api import SignOffIn
 from app.services.analysis_service import create_analysis, execute_analysis
 from app.services.overview_service import overview
 from app.services.quality_service import assess
@@ -172,3 +173,38 @@ def stored_explanations(record_id: str, analysis_id: str | None = None, db: Sess
     return {"analysis_id": analysis.id, "model_version": analysis.model_version,
             "explanations": [{"id": e.id, "beat_id": e.beat_id, "beat_index": i, "method": e.method,
                               "class": e.target_class, "created_at": e.created_at} for e, i in rows]}
+
+
+@router.get("/history")
+def history(db: Session = Depends(get_db), limit: int = Query(500, ge=1, le=2000)):
+    pending, done = pending_counts(db), signed_off(db)
+    rows = db.execute(select(Analysis, ECGRecord.filename).join(ECGRecord).order_by(Analysis.started_at.desc()).limit(limit))
+    return [{**analysis_dict(a), "filename": name, "pending_review_count": pending.get(a.id, 0),
+             "analysis_reviewed": a.id in done,
+             "needs_review": a.status == "completed" and bool(pending.get(a.id)) and a.id not in done} for a, name in rows]
+
+
+def _sign_off(row: AnalysisReview, model_version: str) -> dict:
+    return {"id": row.id, "analysis_id": row.analysis_id, "status": row.status, "note": row.note, "reviewer": row.reviewer,
+            "created_at": row.created_at, "model_version": model_version}
+
+
+@router.get("/analyses/{analysis_id}/sign-offs")
+def sign_offs(analysis_id: str, db: Session = Depends(get_db)):
+    analysis = db.get(Analysis, analysis_id)
+    if analysis is None:
+        raise HTTPException(404, "analysis not found")
+    return [_sign_off(r, analysis.model_version) for r in sorted(analysis.sign_offs, key=lambda r: r.created_at, reverse=True)]
+
+
+@router.post("/analyses/{analysis_id}/sign-offs")
+def create_sign_off(analysis_id: str, payload: SignOffIn, db: Session = Depends(get_db)):
+    analysis = db.get(Analysis, analysis_id)
+    if analysis is None:
+        raise HTTPException(404, "analysis not found")
+    if analysis.status != "completed":
+        raise HTTPException(409, "only completed analyses can be marked reviewed")
+    row = AnalysisReview(analysis_id=analysis_id, **payload.model_dump())
+    db.add(row)
+    db.commit()
+    return _sign_off(row, analysis.model_version)

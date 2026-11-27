@@ -73,3 +73,9 @@ class ReviewOut(BaseModel):
     reviewer: str
     status: str
     created_at: datetime
+
+
+class SignOffIn(BaseModel):
+    status: str = Field(default="reviewed", pattern="^(reviewed|reopened)$")
+    note: str | None = Field(default=None, max_length=4000)
+    reviewer: str = Field(default="local-reviewer", max_length=128)

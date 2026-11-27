@@ -11,9 +11,12 @@ import AnalysisStudio from './pages/AnalysisStudio'
 import Challenge from './pages/Challenge'
 import Comparison from './pages/Comparison'
 import Confidence from './pages/Confidence'
+import History from './pages/History'
 import ModelCard from './pages/ModelCard'
 import Overview from './pages/Overview'
 import Performance, { MetricDetail } from './pages/Performance'
+import ReportBuilder from './pages/ReportBuilder'
+import ReviewWorkspace from './pages/ReviewWorkspace'
 import Sensitivity from './pages/Sensitivity'
 import SignalQuality from './pages/SignalQuality'
 import ThreePanel from './pages/ThreePanel'
@@ -37,6 +40,7 @@ const PAGES: Record<string, React.ReactNode> = {
   '/dataset': <Dataset />,
   '/demo': <Demo />,
   '/challenge': <Challenge />,
+  '/history': <History />,
 }
 
 export default function App() {
@@ -45,6 +49,8 @@ export default function App() {
     <Route element={<WorkspaceLayout />}>
       {NAV.flatMap(g => g.items).map(([to, label]) => <Route key={to} path={to} element={PAGES[to] ?? <Pending name={label} />} />)}
       <Route path="/performance/:metric" element={<MetricDetail />} />
+      <Route path="/history/:id" element={<ReviewWorkspace />} />
+      <Route path="/history/:id/report" element={<ReportBuilder />} />
       <Route path="*" element={<Empty title="Page not found" />} />
     </Route>
   </Routes></RecordingProvider></BrowserRouter>
