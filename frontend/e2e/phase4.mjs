@@ -6,12 +6,13 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { studyFixtures } from './fixtures.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const PY = path.join(ROOT, 'backend/.venv/bin/python')
 const MITDB = path.join(ROOT, 'results/mitdb')
 const ART = path.join(ROOT, 'backend/artifacts')
+/** Where the committed study reports live, relative to an artifacts directory. */
+const STUDY = { selection: 'analysis/multidb/selection.json', validation: 'analysis/multidb/validation_report.json', final: 'analysis/multidb_final/final_report.json' }
 const API_PORT = 8791, UI_PORT = 5191
 const API = `http://127.0.0.1:${API_PORT}`, UI = `http://localhost:${UI_PORT}`
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'nc-e2e-'))
@@ -63,6 +64,8 @@ const walk = (obj, p) => p.split(/(?<!\\)\./).map(s => s.replace(/\\\./g, '.')).
 }, obj)
 
 function truthFor(src, ctx) {
+  const seedkey = /^seedkey:operating-points#models\.([a-z0-9_]+)\.points\.1\.thresholds\.(\d+)$/.exec(src)
+  if (seedkey) { const frozen = json(path.join(ctx.artifacts, STUDY.selection)).candidates[seedkey[1]].frozen; if (!(seedkey[2] in frozen)) throw new Error('unknown seed'); return seedkey[2] }
   const prefix = /^(rowshare|sum|totalshare|shape|spaced|commas|datetime):(.*)$/.exec(src)
   if (prefix) {
     const [, op, rest] = prefix
@@ -90,6 +93,8 @@ function truthFor(src, ctx) {
     const model = metrics().model, types = model.layers.map(l => l.type)
     return {
       architecture: [types.includes('Conv1D') && 'CNN', types.includes('Bidirectional') && 'BiLSTM'].filter(Boolean).join('-'),
+      lead: config.lead, sampling_rate_hz: config.sampling_frequency,
+      model_sha256: fs.readFileSync(path.join(ROOT, 'backend/models/neurocardio_final.keras.sha256'), 'utf8').split(/\s+/)[0],
       input_shape: model.input_shape.filter(d => d !== null).join('×'),
       normalization: { per_window_zscore: 'per-window z-score' }[config.normalization],
       model_version: config.selected_model, parameter_count: model.parameter_count,
@@ -97,7 +102,19 @@ function truthFor(src, ctx) {
   }
   if (file === 'study') {
     const m = /^(validation|final)\.data\.(.*)$/.exec(p)
-    return walk(json(path.join(ctx.artifacts, m[1] === 'validation' ? 'validation_report.json' : 'final_report.json')), m[2])
+    return walk(json(path.join(ctx.artifacts, STUDY[m[1]])), m[2])
+  }
+  if (file === 'operating-points') {
+    // rebuilt from the report files themselves, not from the API: point 0 is argmax, point 1 the frozen thresholds
+    const validation = json(path.join(ctx.artifacts, STUDY.validation)), selection = json(path.join(ctx.artifacts, STUDY.selection))
+    if (p.startsWith('majority.')) return walk(validation.majority_class, p.slice(9))
+    const point = /^models\.([a-z0-9_]+)\.points\.([01])\.(validation|thresholds)\.(.*)$/.exec(p)
+    if (!point) throw new Error(`unknown operating point "${p}"`)
+    const [, name, index, kind, rest] = point
+    if (kind === 'thresholds') { const [seed, i] = rest.split('.'); return selection.candidates[name].frozen[seed].thresholds[+i] }
+    const summary = validation.results[name][index === '0' ? 'argmax' : 'chosen']
+    const [cls, measure] = rest.split('_')
+    return rest === 'macro_f1' || rest === 'accuracy' ? summary[rest].mean : summary.per_class[cls][measure].mean
   }
   throw new Error(`unknown source "${src}"`)
 }
@@ -111,7 +128,8 @@ const ALLOWED_TEXT = [
   [/\bde Chazal DS2 without record 202\b/g, 'name of a published partition (checked by the API against the split file)'],
   [/\bDS2\b|\btest_ds2\b|\bds2\b/g, 'data-set name'],
   [/ResNet1D|resnet1d/g, 'model name'],
-  [/95% confidence intervals/g, 'method constant (artifact key ci95)'],
+  [/\bSHA-256\b/g, 'hash algorithm name'],
+  [/95% confidence intervals|95% CI/g, 'method constant (artifact key ci95)'],
   [/\b2 s windows?\b/g, 'window length constant (config)'],
   [/\brecord 202\b/g, 'record identifier in a fixed caveat (it is a validation record in the model config)'],
 ]
@@ -121,14 +139,14 @@ const ALLOWED_AREAS = [
   ['[data-testid="record-browser"]', 'per-record browser, checked separately against the WFDB annotations'],
 ]
 
-async function checkNumbers(page, ctx, name, url, ready, group = 'numbers', tamper = null, mustFailWith = null) {
+async function checkNumbers(page, ctx, name, url, ready, group = 'numbers', tamper = null, mustFailWith = null, scope = 'main') {
   const wrap = mustFailWith ? async fn => { try { await fn() } catch (e) { expect(String(e.message).includes(mustFailWith), `failed for another reason: ${e.message}`); return `caught: ${mustFailWith}` } throw new Error('the checker did not notice') } : fn => fn()
   await step(group, name, () => wrap(async () => {
     await page.goto(UI + url); await page.getByText(ready).first().waitFor({ timeout: 60000 })
     await page.waitForLoadState('networkidle'); await page.waitForTimeout(500)
     expect(await page.locator('[data-state="loading"], [data-state="error"]').count() === 0, 'page still loading or showing an error')
     if (tamper) await page.evaluate(tamper)
-    const items = await page.$$eval('main [data-source]', els => els.map(e => ({ src: e.getAttribute('data-source'), fmt: e.getAttribute('data-fmt') || 'raw', text: e.textContent.trim() })))
+    const items = await page.$$eval(`${scope} [data-source]`, els => els.map(e => ({ src: e.getAttribute('data-source'), fmt: e.getAttribute('data-fmt') || 'raw', text: e.textContent.trim() })))
     const times = {}
     for (const i of items.filter(x => x.src.startsWith('datetime:'))) { const iso = truthFor(i.src.slice(9), ctx); times[iso] = await page.evaluate(v => new Date(v).toLocaleString(), iso) }
     ctx.localTime = iso => times[iso]
@@ -137,8 +155,9 @@ async function checkNumbers(page, ctx, name, url, ready, group = 'numbers', tamp
       try { const want = format(truthFor(i.src, ctx), i.fmt); if (want !== i.text) bad.push(`${i.src}: shows "${i.text}", source says "${want}"`) }
       catch (e) { bad.push(`${i.src}: ${e.message}`) }
     }
-    const loose = await page.evaluate(({ areas, texts }) => {
-      const root = document.querySelector('main'), out = []
+    expect(items.length > 0 || !name.includes('study'), 'no sourced values found')
+    const loose = await page.evaluate(({ areas, texts, scope }) => {
+      const root = document.querySelector(scope), out = []
       const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
       // join adjacent text nodes of one element so phrases split by React still match
       const seen = new Set()
@@ -152,7 +171,7 @@ async function checkNumbers(page, ctx, name, url, ready, group = 'numbers', tamp
         if (/\d/.test(text)) out.push(text.trim().slice(0, 90))
       }
       return out
-    }, { areas: ALLOWED_AREAS.map(a => a[0]), texts: ALLOWED_TEXT.map(([r]) => [r.source, r.flags]) })
+    }, { areas: ALLOWED_AREAS.map(a => a[0]), texts: ALLOWED_TEXT.map(([r]) => [r.source, r.flags]), scope })
     const budgets = loose.filter(t => t === '5%' || t === '10%')  // review budgets are artifact keys
     const rest = loose.filter(t => !budgets.includes(t))
     expect(!bad.length, `${bad.length} mismatches, e.g. ${bad.slice(0, 3).join(' | ')}`)
@@ -214,10 +233,11 @@ try {
     await page.goto(`${UI}/confidence${q}`); await page.getByRole('button', { name: 'Temperature-scaled' }).click()
     await page.getByText('fitted on validation data only').waitFor(); await page.getByText('It is not clinical certainty.').first().waitFor()
   })
-  await step('flow', 'sensitivity empty state and priority queue', async () => {
-    await page.goto(`${UI}/sensitivity${q}`); await page.getByText('Threshold selection not run yet.').waitFor({ timeout: 60000 })
-    await page.getByText('Priority review queue').waitFor()
-    expect(await page.getByRole('slider', { name: 'Sensitivity (unavailable)' }).isDisabled(), 'slider is not disabled')
+  await step('flow', 'sensitivity slider (real artifacts) and priority queue', async () => {
+    await page.goto(`${UI}/sensitivity${q}`); await page.getByText('Priority review queue').waitFor({ timeout: 60000 })
+    // the primary model kept argmax, so it has one frozen point and no slider
+    await page.getByText('Selection kept plain argmax for this model').waitFor({ timeout: 60000 })
+    expect(await page.getByRole('slider').count() === 0, 'a slider is shown for a model with one operating point')
   })
   await step('flow', 'XAI: Integrated Gradients, completeness, Grad-CAM comparison', async () => {
     await page.goto(`${UI}/xai${q}`); await page.getByText('Completeness for this window').waitFor({ timeout: 240000 })
@@ -280,18 +300,97 @@ try {
     expect(!wide.length, wide.join(', ')); return `${routes.length} routes`
   })
 
-  // ---- numbers on the four pages
+  // ---- numbers, against the real committed artifacts
   await checkNumbers(page, ctx, 'Overview', '/', 'Recordings stored')
   await checkNumbers(page, ctx, 'Dataset Explorer', '/dataset', 'Chosen from')
-  await checkNumbers(page, ctx, 'Model Performance', '/performance', 'Layers of the loaded model')
-  await checkNumbers(page, ctx, 'Model Comparison (no study artifacts)', '/comparison', 'What is compared')
-  const control = (name, tamper, reason) => checkNumbers(page, ctx, `negative control: ${name}`, '/performance', 'Layers of the loaded model', 'numbers', tamper, reason)
+  await checkNumbers(page, ctx, 'Model Performance (app model and real study)', '/performance', 'Layers of the loaded model')
+  await checkNumbers(page, ctx, 'Model Comparison Lab (real study)', '/comparison', 'What is compared')
+  await checkNumbers(page, ctx, 'Model Card (app model and real study)', '/model-card', 'Other limits')
+  await checkNumbers(page, ctx, 'Sensitivity, primary model (real study)', '/sensitivity', 'Selection kept plain argmax', 'numbers', null, null, '.sensitivity-study')
+  await step('numbers', 'sensitivity slider moves between the two real frozen points of every model that has them', async () => {
+    const selection = json(path.join(ART, STUDY.selection))
+    const two = Object.entries(selection.candidates).filter(([, c]) => c.rule === 'thresholds').map(([m]) => m)
+    await page.goto(`${UI}/sensitivity`); const model = page.getByRole('combobox', { name: 'Study model' }); await model.waitFor()
+    const label = page.locator('.sensitivity-study strong', { hasText: /^(Plain argmax|Validation-frozen class thresholds)$/ })
+    const checked = []
+    for (const name of two) {
+      await model.selectOption(name)
+      const recall = () => page.$$eval('.sensitivity-study [data-source$=".S_recall"], .sensitivity-study [data-source$=".F_recall"]', els => els.reduce((a, e) => a + Number(e.textContent), 0))
+      const slider = page.getByRole('slider')
+      const lowLabel = await label.innerText(), low = await recall(); await slider.fill('1'); const highLabel = await label.innerText(), high = await recall()
+      expect(lowLabel !== highLabel && low <= high, `${name}: ${lowLabel} ${low} -> ${highLabel} ${high}`)
+      for (const position of ['0', '1']) {
+        await slider.fill(position)
+        const items = await page.$$eval('.sensitivity-study [data-source]', els => els.map(e => ({ src: e.getAttribute('data-source'), fmt: e.getAttribute('data-fmt'), text: e.textContent.trim() })))
+        const bad = items.filter(i => format(truthFor(i.src, ctx), i.fmt) !== i.text)
+        expect(!bad.length, `${name}: ${bad.slice(0, 3).map(i => `${i.src} shows ${i.text}`).join(' | ')}`)
+      }
+      checked.push(name)
+    }
+    expect(checked.length > 0, 'no model has two operating points')
+    return checked.join(', ')
+  })
+  const control = (name, tamper, reason, url = '/performance', ready = 'Layers of the loaded model') => checkNumbers(page, ctx, `negative control: ${name}`, url, ready, 'numbers', tamper, reason)
   await control('a changed value is detected', () => { document.querySelector('main [data-source="metrics#test.macro.f1"]').textContent = '0.999' }, 'mismatches')
   await control('an unsourced number is detected', () => { document.querySelector('main h1').append(' 12345') }, 'unsourced numbers')
   await control('accuracy without a baseline is detected', () => { document.querySelectorAll('main [data-source="metrics#test.majority_class_baseline_accuracy"]').forEach(e => { e.setAttribute('data-source', 'metrics#test.accuracy'); e.textContent = document.querySelector('main [data-source="metrics#test.accuracy"]').textContent; e.setAttribute('data-fmt', 'pct1') }) }, 'without a baseline')
-  await step('numbers', 'Comparison shows honest empty states', async () => {
-    await page.goto(`${UI}/comparison`); await page.getByText('Final evaluation not run yet.').waitFor(); await page.getByText('Study validation not run yet.').waitFor()
+  await control('a changed study test score is detected', () => { document.querySelector('main [data-source="study#final.data.sets.ds2_without_202.gbm.per_class.S.recall.mean"]').textContent = '0.656' }, 'mismatches', '/comparison', 'What is compared')
+
+  // ---- how the real study is presented
+  const finalReport = json(path.join(ART, STUDY.final)), PRIMARY = finalReport.primary
+  const FIXED = ['cnn_bilstm', 'rr_fusion', 'rr_fusion_attn', 'rr_fusion_attn_shead', 'cnn', 'lstm', 'resnet1d', 'gbm', 'stacked_ensemble']
+  const tables = testid => page.$$eval(`[data-testid="${testid}"] table`, ts => ts.map(t => ({ caption: t.caption?.textContent ?? '', head: [...t.tHead.rows[0].cells].map(c => c.textContent), rows: [...t.tBodies[0].rows].map(r => [...r.cells].map(c => c.textContent)) })))
+  for (const [url, name, secondaries] of [['/comparison', 'Comparison Lab', true], ['/performance', 'Model Performance', false], ['/model-card', 'Model Card', false]]) {
+    await step('study', `${name}: every test table has the deployed model and the majority class; primary first, never ranked by score`, async () => {
+      await page.goto(UI + url); await page.getByTestId('testset-incart_heldout').waitFor({ timeout: 60000 })
+      let count = 0
+      for (const set of Object.keys(finalReport.sets)) {
+        const found = await tables(`testset-${set}`)
+        expect(found.length === (secondaries ? 3 : 1), `${set}: ${found.length} tables`)
+        for (const t of found) {
+          const text = t.rows.map(r => r.join(' ')).join('\n')
+          expect(/Deployed CNN-BiLSTM/.test(text) && /Majority class/.test(text), `${set}: a table lacks the deployed model or the majority class (${t.caption.slice(0, 40)})`)
+          if (t.head.includes('Accuracy')) {
+            expect(t.head.indexOf('Macro-F1') === 2 && t.head[3] === 'S recall' && t.head[4] === 'F recall' && t.head.at(-1) === 'Accuracy', `column order: ${t.head.join(', ')}`)
+            expect(t.rows[0][1] === 'PRIMARY' && t.rows[1][1] === 'Reference' && t.rows[2][1] === 'Baseline', `first rows: ${t.rows.slice(0, 3).map(r => r[1]).join(', ')}`)
+            const rest = t.rows.slice(3)
+            expect(rest.length === (secondaries ? FIXED.length - 1 : 0) && rest.every(r => r[1] === 'SECONDARY'), `${set}: ${rest.length} secondary rows`)
+            const labels = { cnn_bilstm: 'CNN-BiLSTM', rr_fusion: 'CNN-BiLSTM + RR fusion', rr_fusion_attn: 'RR fusion + attention', rr_fusion_attn_shead: 'RR fusion + attention + S head', cnn: 'CNN only', lstm: 'LSTM only', resnet1d: 'ResNet1D', gbm: 'Gradient-boosted trees (GBM)', stacked_ensemble: 'Stacked ensemble' }
+            if (secondaries) expect(rest.map(r => r[0]).join('|') === FIXED.filter(m => m !== PRIMARY).map(m => labels[m]).join('|'), `order: ${rest.map(r => r[0]).join(', ')}`)
+          }
+          count++
+        }
+      }
+      const main = await page.locator('main').innerText()
+      expect(/frozen on validation before the test was opened/.test(main), 'primary is not described as frozen before the test')
+      expect(/unseen patients/.test(main), 'INCART wording missing')
+      expect(await page.getByTestId('testset-ds2_without_202').textContent().then(t => /fair comparison with the deployed model/.test(t)), '21-record set not marked as the fair comparison')
+      expect(await page.getByRole('heading', { name: /validation$/i }).count() >= 1, 'no separate validation panel')
+      return `${count} test tables over ${Object.keys(finalReport.sets).length} sets`
+    })
+  }
+  for (const [url, name] of [['/performance', 'Model Performance'], ['/model-card', 'Model Card'], ['/comparison', 'Comparison Lab']]) {
+    await step('study', `${name}: says the live model is the deployed CNN-BiLSTM and the primary is not served or applied`, async () => {
+      await page.goto(UI + url); await page.getByTestId('live-model-notice').getByText('The API cannot serve').waitFor({ timeout: 60000 })
+      const text = await page.getByTestId('live-model-notice').textContent()
+      for (const part of ['is the deployed CNN-BiLSTM', 'not the multi-database study’s primary model (Gradient-boosted trees (GBM))', 'applied to uploaded recordings', 'The API cannot serve Gradient-boosted trees (GBM)']) expect(text.includes(part), `notice lacks "${part}"`)
+    })
+  }
+  await step('study', 'findings state what the final report’s flags say', async () => {
+    await page.goto(`${UI}/comparison`); const box = page.getByTestId('findings'); await box.waitFor({ timeout: 60000 })
+    const gains = Object.values(finalReport.sets).map(s => s.primary_vs_deployed).filter(g => g.headline_comparison)
+    expect(gains.length === 2 && gains.every(g => g.macro_f1.meaningful && ['S_f1', 'F_f1', 'S_recall', 'F_recall'].every(k => !g[k].meaningful)), 'the report flags are not what this check expects')
+    const macro = await page.getByTestId('finding-macro').innerText(), minority = await page.getByTestId('finding-minority').innerText()
+    expect(/improved on DS2 without record 202; improved on INCART unseen patients/.test(macro), macro)
+    expect(/did NOT meaningfully improve/.test(minority), minority)
+    expect(minority.includes('Lower than the deployed model: S recall on INCART unseen patients'), minority)
+    expect((await page.getByTestId('finding-f-recall').innerText()).includes('includes zero'), 'F recall interval wording')
+    expect((await page.getByTestId('finding-validation-gap').innerText()).includes('validation overstated it'), 'validation gap wording')
+    const conc = await page.getByTestId('finding-concentration').innerText()
+    expect(conc.includes('mitdb:232') && conc.includes('mitdb:213'), conc)
+    expect((await box.innerText()).includes('upper bound') && (await box.innerText()).includes('had been scored before this study'), 'review or DS2 disclosure missing')
   })
+
   await step('numbers', 'Dataset record browser matches WFDB annotations (record 100)', async () => {
     const t = JSON.parse(execFileSync(PY, [path.join(ROOT, 'frontend/e2e/truth.py'), ROOT, dbFile, 'record'], { encoding: 'utf8' }))
     await page.goto(`${UI}/dataset`); await page.getByText(/\d+ of \d+/).first().waitFor({ timeout: 60000 })
@@ -351,7 +450,7 @@ try {
   })
 
   // ---- artifact states: empty, corrupt, smoke, wrong shape, stale
-  const artDir = (name, files) => { const d = path.join(TMP, name); fs.mkdirSync(d, { recursive: true }); for (const [f, v] of Object.entries(files)) fs.writeFileSync(path.join(d, f), typeof v === 'string' ? v : JSON.stringify(v)); return d }
+  const artDir = (name, files) => { const d = path.join(TMP, name); fs.mkdirSync(d, { recursive: true }); for (const [f, v] of Object.entries(files)) { fs.mkdirSync(path.dirname(path.join(d, f)), { recursive: true }); fs.writeFileSync(path.join(d, f), typeof v === 'string' ? v : JSON.stringify(v)) } return d }
   const withArtifacts = async (name, files, fn) => { await startApi(path.join(TMP, 'data2'), artDir(name, files)); try { await fn() } finally { await stopApi() } }
   await withArtifacts('none', {}, async () => {
     await step('errors', 'no artifacts: honest empty states', async () => {
@@ -361,15 +460,15 @@ try {
       await page.goto(`${UI}/demo`); await page.getByText('Demo samples have not been built.').waitFor()
     })
   })
-  const fx = studyFixtures()
-  await withArtifacts('broken', { 'metrics.json': '{oops', 'final_report.json': { ...fx['final_report.json'], smoke: true }, 'selection.json': '[' }, async () => {
+  const real = kind => json(path.join(ART, STUDY[kind]))
+  await withArtifacts('broken', { 'metrics.json': '{oops', [STUDY.final]: { ...real('final'), smoke: true }, [STUDY.selection]: '[' }, async () => {
     await step('errors', 'corrupt metrics and smoke final report are refused', async () => {
-      await page.goto(`${UI}/performance`); await page.getByText('could not be read').waitFor()
+      await page.goto(`${UI}/performance`); await page.getByText('could not be read').first().waitFor()
       await page.goto(`${UI}/comparison`); await page.getByText('smoke run').waitFor()
       await page.goto(`${UI}/sensitivity`); await page.getByText('selection.json could not be read').waitFor()
     })
   })
-  await withArtifacts('shape', { 'validation_report.json': { smoke: false, primary: 'cnn' } }, async () => {
+  await withArtifacts('shape', { [STUDY.validation]: { smoke: false, primary: 'cnn' } }, async () => {
     await step('errors', 'wrong-shaped artifact shows an error, not a blank page', async () => {
       await page.goto(`${UI}/comparison`); await page.getByText('This page could not be displayed').waitFor(); await page.getByRole('link', { name: 'Model Card' }).waitFor()
     })
@@ -379,19 +478,24 @@ try {
     await step('errors', 'stale metrics are flagged', async () => { await page.goto(`${UI}/performance`); await page.getByText('may be out of date').waitFor() })
   })
 
-  // ---- study rendering, with clearly synthetic fixtures in a temporary directory
-  const dir = artDir('study', { ...fx, 'metrics.json': json(path.join(ART, 'metrics.json')), 'multidb_data_report.json': json(path.join(ART, 'multidb_data_report.json')) })
+  // ---- perturbed COPIES of the real reports, in a temporary directory: the wording and warnings must follow the files
+  const changed = real('final')
+  changed.sets.ds2_without_202.primary_vs_deployed.macro_f1.meaningful = false
+  changed.sets.incart_heldout.primary_vs_deployed.S_f1.meaningful = true
+  changed.sets.ds2_without_202.gbm.per_class.F.recall.mean = 0.5
+  const selectionChanged = { ...real('selection'), note: 'edited after the test' }
+  const dir = artDir('perturbed', { [STUDY.final]: changed, [STUDY.validation]: real('validation'), [STUDY.selection]: selectionChanged,
+    'metrics.json': json(path.join(ART, 'metrics.json')), 'multidb_data_report.json': json(path.join(ART, 'multidb_data_report.json')) })
   await startApi(path.join(TMP, 'data3'), dir)
-  await checkNumbers(page, { ...ctx, artifacts: dir }, 'Model Comparison with SYNTHETIC study fixtures (tests rendering only)', '/comparison', 'Selective review, primary model', 'numbers')
-  await step('numbers', 'sensitivity slider works with SYNTHETIC fixtures', async () => {
-    await page.goto(`${UI}/sensitivity`); const slider = page.getByRole('slider'); await slider.waitFor()
-    const label = page.locator('main strong', { hasText: /^(Plain argmax|Validation-frozen class thresholds)$/ })
-    const left = await label.innerText(); await slider.fill('1'); const right = await label.innerText()
-    expect(left !== right, `slider did not change the operating point (${left})`)
-    // the right-hand position must be the one with higher S + F validation recall
-    const recall = async () => (await page.$$eval('main [data-source$=".S_recall"], main [data-source$=".F_recall"]', els => els.reduce((a, e) => a + Number(e.textContent), 0)))
-    const high = await recall(); await slider.fill('0'); const low = await recall(); expect(low <= high, `ordering wrong: ${low} > ${high}`)
-    expect(await page.getByText('Majority-class accuracy').count() > 0, 'no baseline column')
+  await checkNumbers(page, { ...ctx, artifacts: dir }, 'perturbed copy: numbers follow the files', '/comparison', 'What is compared', 'study')
+  await step('study', 'perturbed copy: findings wording follows the changed flags', async () => {
+    await page.goto(`${UI}/comparison`); await page.getByTestId('findings').waitFor({ timeout: 60000 })
+    const macro = await page.getByTestId('finding-macro').innerText(), minority = await page.getByTestId('finding-minority').innerText()
+    expect(macro.includes('did not meaningfully improve on DS2 without record 202'), macro)
+    expect(minority.includes('meaningful improvement under the rule only for S F1 on INCART unseen patients'), minority)
+  })
+  await step('study', 'perturbed copy: a selection file edited after the test raises the provenance warning', async () => {
+    await page.goto(`${UI}/comparison`); await page.getByText('Provenance check failed.').waitFor({ timeout: 60000 })
   })
   await stopApi()
   record('flow', 'no uncaught page errors during the run', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '))
@@ -410,19 +514,23 @@ const grep = (name, regex, skip = () => false) => {
 }
 grep('no placeholder or unfinished-work text', /not rebuilt|\bTODO\b|\bFIXME\b|lorem|coming soon|\bTBD\b|\bmock|dummy|fake|hard-?coded/i)
 grep('"placeholder" only as an HTML input hint', /placeholder/i, l => /placeholder=("|\{)/.test(l))
+grep('no known study statistics typed into source', /\b0\.(656|174|188|555|560|620|483|472|457|529)|\b75\.2\s?%|\b93\.[03]\s?%/)
 grep('no known statistics typed into source', /0\.906|0\.887|0\.473|90\.6\s?%|88\.7|0\.097|0\.057|0\.917|142[,_]?980|47[,_]?518|98\.9|\b2[,_]?953\b/)
 grep('no overclaiming wording', /clinical(ly)?[- ]grade|diagnoses |detects arrhythmia|real-time monitoring|unseen database(?!:)/i, l => /not an unseen database/.test(l))
 
 // ---------------------------------------------------------------- report
 const failed = results.filter(r => !r.ok)
 const sha = execFileSync('git', ['-C', ROOT, 'rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim()
-const titles = { flow: 'End-to-end demo flow', numbers: 'Numbers against artifacts', errors: 'Error paths', grep: 'Placeholder and wording grep', run: 'Run' }
+const titles = { flow: 'End-to-end demo flow', numbers: 'Numbers against artifacts', study: 'How the real study results are presented', errors: 'Error paths', grep: 'Placeholder and wording grep', run: 'Run' }
 const md = ['# Phase 4 automated checks', '', `Generated by \`npm run e2e\` at ${new Date().toISOString()}, on top of commit ${sha}. This file is overwritten on each run.`, '',
   `**${results.length - failed.length} passed, ${failed.length} failed.**`, '',
   ...Object.entries(titles).flatMap(([g, t]) => { const rows = results.filter(r => r.group === g); return rows.length ? [`## ${t}`, '', '| Result | Check | Detail |', '|---|---|---|', ...rows.map(r => `| ${r.ok ? 'PASS' : '**FAIL**'} | ${r.name} | ${r.detail.replace(/\|/g, '/')} |`), ''] : [] }),
   '## How numbers are checked', '', 'Each statistic on screen carries a `data-source` attribute. The checker resolves it from the files on disk (and, for stored counts, with its own SQL), formats it the same way and compares the text. Any other digit on the page fails the check unless it is in this allow-list:', '',
   ...ALLOWED_AREAS.map(([a, why]) => `- area \`${a}\`: ${why}`), ...ALLOWED_TEXT.map(([r, why]) => `- text \`${r.source}\`: ${why}`), '- cells `5%` and `10%` in the study review table: review budgets (artifact keys)', '',
-  'Study results do not exist yet. Their rendering is tested only with synthetic fixtures in a temporary directory; that says nothing about real study numbers.', '']
+  'Study numbers are compared with the committed reports in `backend/artifacts/analysis/`. A match shows that the page displays what the file says. It does not show that the evaluation behind the file is correct; that was not re-run.', '',
+  'The "perturbed copy" checks edit copies of those reports in a temporary directory. The committed files are not modified.', '',
+  '`npm run e2e` rewrites this file. Notes added by hand belong in the section it appends from `frontend/e2e/report-notes.md`.', '',
+  ...(fs.existsSync(path.join(ROOT, 'frontend/e2e/report-notes.md')) ? [fs.readFileSync(path.join(ROOT, 'frontend/e2e/report-notes.md'), 'utf8')] : [])]
 fs.writeFileSync(path.join(ROOT, 'docs/phase4-test-report.md'), md.join('\n'))
 fs.rmSync(TMP, { recursive: true, force: true })
 console.log(`\n${results.length - failed.length} passed, ${failed.length} failed`)

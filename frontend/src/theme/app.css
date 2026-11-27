@@ -115,7 +115,8 @@ tr.selected td { background: var(--accent); }
 .chart text { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
 .headline { display: grid; grid-template-columns: 1.3fr repeat(2, 1fr) 1.3fr; gap: var(--gap); }
 .headline .stat.lead { border-color: var(--green); border-width: 2px; }
-label.field { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+label.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; font-size: 12px; color: var(--muted); }
+label.field > select { min-width: 0; max-width: 100%; }
 
 .present { position: fixed; inset: 0; z-index: 50; background: var(--bg); overflow: auto; padding: 4vh 6vw; display: flex; flex-direction: column; gap: 18px; font-size: 19px; }
 .present h1 { font-size: clamp(32px, 4vw, 54px); }
