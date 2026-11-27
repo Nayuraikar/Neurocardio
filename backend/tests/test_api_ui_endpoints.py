@@ -137,3 +137,20 @@ def test_study_empty_smoke_broken_and_present(tmp_path):
         points = c.get("/api/study/operating-points").json()
         assert [p["key"] for p in points["models"]["rr_fusion"]["points"]] == ["argmax", "thresholds"]
         assert points["models"]["rr_fusion"]["points"][1]["validation"]["macro_f1"] == 0.6
+
+
+def test_explanations_reference_and_comparison(client, analysed):
+    _, analysis = analysed
+    aid = analysis["id"]
+    beat = client.get(f"/api/analyses/{aid}/beats?limit=5").json()[3]
+    cls = beat["prediction"]["predicted_class"]
+    params = {"beat": beat["id"], "class": cls}
+    assert client.get(f"/api/analyses/{aid}/explanations/compare", params=params).status_code == 409
+    cam = client.get(f"/api/analyses/{aid}/explanations", params={**params, "method": "gradcam"}).json()
+    ig = client.get(f"/api/analyses/{aid}/explanations", params={**params, "method": "ig"}).json()
+    assert ig["metadata"]["steps"] == 512 and "completeness_error" in ig["metadata"] and cam["model_version"]
+    assert ig["reference_label"] in ("N", "S", "V", "F") and ig["top_regions"]
+    assert "spearman_gradcam_vs_abs_ig" in client.get(f"/api/analyses/{aid}/explanations/compare", params=params).json()
+    ref = client.get(f"/api/analyses/{aid}/reference").json()
+    assert ref["available"] and len(ref["labels"]) == analysis["beat_count"]
+    assert client.get("/api/model/xai-evaluation").json()["available"] is True

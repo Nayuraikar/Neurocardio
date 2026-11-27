@@ -31,6 +31,11 @@ def metrics(request: Request):
     return study_service.model_metrics(request.app.state)
 
 
+@router.get("/model/xai-evaluation")
+def xai_evaluation(request: Request):
+    return study_service.xai_evaluation(request.app.state)
+
+
 @router.get("/study")
 def study(request: Request):
     return study_service.study(request.app.state.artifacts_dir)

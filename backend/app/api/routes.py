@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import threading
 
 import numpy as np
 import wfdb
@@ -17,11 +18,13 @@ from app.models import Analysis, Beat, Explanation, ECGRecord, Review
 from app.repositories.queries import get_analysis, get_beat
 from app.schemas.api import AnalysisOut, BeatOut, RecordOut, ReviewIn, ReviewOut
 from app.services.analysis_service import run_analysis
+from app.services.xai_service import rank_correlation, reference_labels, top_regions
 from app.services.recording_service import upload_recording
 from app.services.report_service import generate_report
 from app.utils.serializers import analysis_dict, beat_dict, record_dict, review_dict
 
 router = APIRouter()
+XAI_LOCK = threading.Lock()
 
 
 @router.get("/health")
@@ -137,6 +140,15 @@ def explanation(analysis_id: str, request: Request, beat: str, target_class: str
     if b is None or b.analysis_id != analysis_id:
         raise HTTPException(404, "beat not found in this analysis")
 
+    def respond(row, cached: bool):
+        labels = reference_labels(analysis.record, request.app.state.config["aami_mapping"])
+        return {"id": row.id, "beat_id": row.beat_id, "method": row.method, "class": row.target_class,
+                "attributions": row.attributions, "metadata": row.metadata_json, "cached": cached,
+                "model_version": analysis.model_version, "created_at": row.created_at,
+                "predicted_class": b.prediction.predicted_class if b.prediction else None,
+                "reference_label": labels.get(b.sample_index) if labels else None,
+                "top_regions": top_regions(row.attributions, analysis.record.sampling_rate)}
+
     ig_steps = 512 if method == "ig" else None
     baseline_name = "all-zero normalized window" if method == "ig" else None
     cache_key = compute_explanation_cache_key(
@@ -153,14 +165,17 @@ def explanation(analysis_id: str, request: Request, beat: str, target_class: str
                                                 Explanation.method == method,
                                                 Explanation.target_class == target_class))
     if cached:
-        return {"id": cached.id, "beat_id": cached.beat_id, "method": cached.method, "class": cached.target_class,
-                "attributions": cached.attributions, "metadata": cached.metadata_json, "cached": True}
+        return respond(cached, True)
     signal = np.asarray(np.load(analysis.record.signal_path), dtype=np.float32)
     filtered = filter_continuous(signal, analysis.record.sampling_rate)
     batch = extract_windows(filtered, np.asarray([b.sample_index], dtype=np.int64))
     if not len(batch.windows):
         raise HTTPException(422, "beat window crosses a recording edge")
-    explainer = ModelExplainer(request.app.state.classifier.model, ig_steps=512, ig_batch_size=32)
+    with XAI_LOCK:
+        explainer = getattr(request.app.state, "explainer", None)
+        if explainer is None:  # kept so the compiled gradient step is traced once
+            explainer = request.app.state.explainer = ModelExplainer(request.app.state.classifier.model, ig_steps=512,
+                                                                     ig_batch_size=32)
     class_index = ["N", "S", "V", "F"].index(target_class)
     if method == "gradcam":
         attrs, grad_norm = explainer.gradcam_with_diagnostics(batch.windows, class_index)
@@ -172,7 +187,8 @@ def explanation(analysis_id: str, request: Request, beat: str, target_class: str
                     "normalization": "ReLU, per-window max after bilinear upsampling to 720 samples",
                     "normalisation": "ReLU, per-window max after bilinear upsampling to 720 samples"}
     else:
-        result = explainer.integrated_gradients(batch.windows, class_index)
+        with XAI_LOCK:
+            result = explainer.integrated_gradients(batch.windows, class_index)
         values = result["attributions"][0]
         metadata = {"layer": "logits", "steps": explainer.ig_steps, "baseline": "all-zero normalized window",
                     "score_difference": float(result["score_difference"][0]),
@@ -182,8 +198,36 @@ def explanation(analysis_id: str, request: Request, beat: str, target_class: str
     row = Explanation(cache_key=cache_key, beat_id=beat, method=method, target_class=target_class,
                       attributions=np.asarray(values, dtype=np.float32).tolist(), metadata_json=metadata)
     db.add(row); db.commit(); db.refresh(row)
-    return {"id": row.id, "beat_id": beat, "method": method, "class": target_class,
-            "attributions": row.attributions, "metadata": row.metadata_json, "cached": False}
+    return respond(row, False)
+
+
+@router.get("/analyses/{analysis_id}/explanations/compare")
+def compare_explanations(analysis_id: str, beat: str, target_class: str = Query(..., alias="class", pattern="^[NSVF]$"),
+                         db: Session = Depends(get_db)):
+    """Rank agreement between the two stored maps for one window and class."""
+    b = get_beat(db, beat)
+    if b is None or b.analysis_id != analysis_id:
+        raise HTTPException(404, "beat not found in this analysis")
+    maps = {}
+    for row in db.scalars(select(Explanation).where(Explanation.beat_id == beat, Explanation.target_class == target_class)
+                          .order_by(Explanation.created_at)):
+        maps[row.method] = row.attributions
+    if not {"gradcam", "ig"} <= set(maps):
+        raise HTTPException(409, "both Grad-CAM and Integrated Gradients must be generated first")
+    return {"spearman_gradcam_vs_abs_ig": rank_correlation(maps["gradcam"], maps["ig"])}
+
+
+@router.get("/analyses/{analysis_id}/reference")
+def reference(analysis_id: str, request: Request, db: Session = Depends(get_db)):
+    """Reference labels per window, read from the uploaded annotation file at request time."""
+    analysis = get_analysis(db, analysis_id)
+    if analysis is None:
+        raise HTTPException(404, "analysis not found")
+    labels = reference_labels(analysis.record, request.app.state.config["aami_mapping"])
+    if labels is None:
+        return {"available": False, "message": "No reference annotation was uploaded with this recording.", "labels": {}}
+    return {"available": True, "message": None,
+            "labels": {b.id: labels[b.sample_index] for b in analysis.beats if b.sample_index in labels}}
 
 
 @router.get("/reviews", response_model=list[ReviewOut])

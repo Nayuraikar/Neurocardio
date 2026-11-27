@@ -10,6 +10,7 @@ import Overview from './pages/Overview'
 import Sensitivity from './pages/Sensitivity'
 import SignalQuality from './pages/SignalQuality'
 import ThreePanel from './pages/ThreePanel'
+import XaiStudio from './pages/XaiStudio'
 import Viewer from './pages/Viewer'
 
 const Pending = ({ name }: { name: string }) => <Empty title={`${name}: not rebuilt yet`} />
@@ -21,6 +22,7 @@ const PAGES: Record<string, React.ReactNode> = {
   '/quality': <SignalQuality />,
   '/confidence': <Confidence />,
   '/sensitivity': <Sensitivity />,
+  '/xai': <XaiStudio />,
 }
 
 export default function App() {

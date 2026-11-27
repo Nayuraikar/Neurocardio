@@ -131,3 +131,11 @@ def operating_points(artifacts_dir: Path) -> dict:
     majority = validation["data"]["majority_class"] if validation["available"] else None
     return {"available": True, "primary": chosen["primary"], "models": models, "validation_message": validation["message"],
             "majority": majority and {"accuracy": majority["accuracy"], "macro_f1": majority["macro_f1"]}}
+
+
+def xai_evaluation(state) -> dict:
+    data, problem = read_json(state.artifacts_dir / "xai_evaluation.json")
+    if data is None:
+        return {"available": False, "message": "XAI evaluation has not been generated.", "problem": problem}
+    stale = state.classifier is not None and data["model_sha256"] != state.classifier.sha256
+    return {"available": True, "data": data, "stale": ["the loaded model differs from the evaluated one"] if stale else []}

@@ -50,3 +50,23 @@ def test_explainability_rejects_invalid_input_and_target(model):
         explainer.integrated_gradients(bad, 0)
     with pytest.raises(ValueError, match="target_class"):
         explainer.gradcam(np.zeros((1, 720, 1), dtype=np.float32), 4)
+
+
+def test_compiled_ig_matches_uncompiled_reference(model):
+    """The compiled gradient step must give the same integral as a plain eager loop."""
+    import tensorflow as tf
+
+    steps, target = 64, 2
+    x = reference_batch()[1:2].reshape(1, 720, 1)
+    logit_model = tf.keras.Model(model.model.inputs, model.model.get_layer("logits").output)
+    alphas = np.linspace(0.0, 1.0, steps + 1, dtype=np.float32)
+    flat = tf.constant(alphas[:, None, None] * x)
+    with tf.GradientTape() as tape:
+        tape.watch(flat)
+        objective = tf.reduce_sum(logit_model(flat, training=False)[:, target])
+    grads = tape.gradient(objective, flat).numpy()
+    weights = np.ones(steps + 1, dtype=np.float32)
+    weights[[0, -1]] = 0.5
+    expected = (x[0] * (grads * weights[:, None, None]).sum(axis=0) / steps)[:, 0]
+    result = ModelExplainer(model.model, ig_steps=steps, ig_batch_size=16).integrated_gradients(x, target)
+    assert np.allclose(result["attributions"][0], expected, atol=1e-5)
