@@ -6,6 +6,7 @@ import OverviewLayout from './layouts/OverviewLayout'
 import WorkspaceLayout from './layouts/WorkspaceLayout'
 import { NAV } from './layouts/nav'
 import AnalysisStudio from './pages/AnalysisStudio'
+import Comparison from './pages/Comparison'
 import Confidence from './pages/Confidence'
 import Overview from './pages/Overview'
 import Sensitivity from './pages/Sensitivity'
@@ -25,6 +26,7 @@ const PAGES: Record<string, React.ReactNode> = {
   '/sensitivity': <Sensitivity />,
   '/xai': <XaiStudio />,
   '/errors': <ErrorsLab />,
+  '/comparison': <Comparison />,
 }
 
 export default function App() {
