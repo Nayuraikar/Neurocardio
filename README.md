@@ -2,45 +2,97 @@
 
 NeuroCardio is a CNN-BiLSTM ECG beat classifier (N/S/V/F, AAMI classes) with explainability and human review. It is a research prototype, not a diagnostic device.
 
-## Quick start (macOS/Linux)
+## Quick start from a clean clone (macOS/Linux)
 
-Prerequisites: Python 3.11 (developed with 3.11.15), Node.js 22 (developed with v22.12.0) and npm.
+### Versions
 
-```sh
-./setup.sh      # creates backend/.venv, installs Python deps, runs npm install
-./run.sh        # starts API (127.0.0.1:8000) and frontend; Ctrl+C stops both
-```
+| Tool | Tested with | Requirement |
+|---|---|---|
+| Python | 3.11.15 | 3.11 (see `.python-version`). `backend/requirements.txt` pins all packages, including indirect ones; other Python versions are untested |
+| Node.js | 26.13.1 | `^22.13.0`, `^24.0.0` or `>=26` (`engines` in `frontend/package.json`). Only 26.13.1 was tested for this version |
+| npm | 11.20.0 | `frontend/package-lock.json` pins the packages; use `npm ci` |
 
-Requires Node ^20.19, ^22.13 or >=24, and Python 3.11.
-The first launch takes up to a minute while TensorFlow loads.
+The pins were tested on macOS (Apple Silicon). Linux and Windows are untested.
 
-Open http://localhost:5173 and upload the files from `sample_data/` (select a record's `.hea`, `.dat` and `.atr` together, e.g. 100).
-
-### Manual steps (also for Windows)
+### Setup
 
 ```sh
-# one-time
+git clone <repository-url> neurocardio && cd neurocardio
+
 python3.11 -m venv backend/.venv
-backend/.venv/bin/python -m pip install -r backend/requirements.txt   # Windows: backend\.venv\Scripts\python
-cd frontend && npm install && cd ..
+backend/.venv/bin/python -m pip install --upgrade pip
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
 
-# terminal 1 (project root)
-backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
-
-# terminal 2
-cd frontend && npm run dev -- --host localhost
-
-# tests
-cd backend && PYTHONPATH=. .venv/bin/python -m pytest -q
-
-# demo windows (training and validation patients only)
-backend/.venv/bin/python backend/tools/build_demo_samples.py
-
-# end-to-end and number checks (see frontend/e2e/README.md)
-cd frontend && npm run e2e
+(cd frontend && npm ci)
 ```
 
-API docs: http://127.0.0.1:8000/docs. The Vite dev server proxies `/api` to port 8000. `backend/data/` (SQLite DB, uploads, reports) is created automatically on first start.
+### Run (two terminals, both from the project root)
+
+```sh
+# terminal 1: API on http://127.0.0.1:8000
+backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+```
+
+```sh
+# terminal 2: UI on http://localhost:5173
+cd frontend && npm run dev -- --host localhost --port 5173 --strictPort
+```
+
+Open http://localhost:5173 and upload the files from `sample_data/` (select a record's `.hea`, `.dat` and `.atr` together,
+for example record 100). The API can take up to a minute to start while TensorFlow loads. No training, download or data
+preparation step is needed: the model, demo samples and study reports are in the repository.
+
+`./setup.sh` followed by `./run.sh` does the same with shorter commands (`setup.sh` uses `npm install`, which may update the lock file).
+
+### Environment variables
+
+All are optional.
+
+| Variable | Read by | Default | Purpose |
+|---|---|---|---|
+| `NEUROCARDIO_DATA_DIR` | API | `backend/data` | SQLite database (`neurocardio.sqlite3`), uploads and reports. Created on first start. Set it to a new empty folder to try the app without touching existing data |
+| `NEUROCARDIO_ARTIFACTS_DIR` | API | `backend/artifacts` | Evaluation and study report files |
+| `NEUROCARDIO_API` | Vite dev server | `http://127.0.0.1:8000` | Where `/api` is proxied |
+| `NEUROCARDIO_ANNOTATION_ALIGNMENT_MIN` | API | `0.90` | Minimum share of uploaded annotations that must align with signal peaks |
+| `NEUROCARDIO_ANNOTATION_ALIGNMENT_TOLERANCE_MS` | API | `150` | Tolerance for that alignment |
+
+Example with a throwaway data directory:
+
+```sh
+NEUROCARDIO_DATA_DIR="$(mktemp -d)" backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend --port 8000
+```
+
+### Checks
+
+```sh
+(cd backend && PYTHONPATH=. .venv/bin/python -m pytest -q)
+(cd frontend && npx tsc -b && npm run lint && npm run build)
+
+# end-to-end and number checks; needs a browser once (see frontend/e2e/README.md)
+(cd frontend && npx playwright install chromium && npm run e2e)
+```
+
+`npm run e2e` uses a temporary data directory and rewrites `docs/phase4-test-report.md`.
+
+Other commands:
+
+```sh
+backend/.venv/bin/python backend/tools/build_results_doc.py   # regenerate docs/RESULTS.md from the reports
+backend/.venv/bin/python backend/tools/build_demo_samples.py  # rebuild demo windows (training and validation patients only)
+```
+
+API docs: http://127.0.0.1:8000/docs.
+
+## Study results and the live model
+
+- **The app's live model is the deployed CNN-BiLSTM.** It is **not** the multi-database study's primary model, gradient-boosted
+  trees (GBM). No study model or frozen threshold is applied to uploaded recordings, and the API cannot serve GBM.
+- The Model Comparison Lab, Model Performance, Model Card and sensitivity slider read the committed reports in
+  `backend/artifacts/analysis/multidb/` (selection and validation) and `backend/artifacts/analysis/multidb_final/` (the one
+  final test). Validation and test are shown separately.
+- Numbers, comparisons and limitations: [docs/RESULTS.md](docs/RESULTS.md). In short, macro-F1 improved over the deployed
+  model under the rule declared in advance; S and F recall and F1 did not meaningfully improve.
+- Data sources, citations and licences: [docs/DATA.md](docs/DATA.md).
 
 ## Features
 
@@ -51,9 +103,6 @@ API docs: http://127.0.0.1:8000/docs. The Vite dev server proxies `/api` to port
 - Demo Playground and Challenge Mode (training and validation patients only)
 - History, review workspace (reviewer labels never change predictions), report builder (PDF and CSV), batch analysis, comparison, presentation mode
 
-Study results appear only when `selection.json`, `validation_report.json` and `final_report.json` from a non-smoke run are
-placed in `backend/artifacts/` (or `backend/artifacts/multidb/`). Until then the UI says they have not been run.
-
 ## Model
 
 - Input: 720×1 R-peak-centred window, 0.5–40 Hz Butterworth bandpass, per-window z-score
@@ -61,7 +110,7 @@ placed in `backend/artifacts/` (or `backend/artifacts/multidb/`). Until then the
 - Selected by validation macro-F1; the config records sqrt-weighted cross-entropy (unverified: the training code is not in the repository)
 - Files: `backend/models/`. Details in `docs/inference-pipeline.md`.
 
-## Evaluation
+## Evaluation of the app's model
 
 Patient-wise held-out MIT-BIH test, window level (source: `backend/artifacts/metrics.json`).
 
@@ -100,6 +149,8 @@ Patient-wise held-out MIT-BIH test, window level (source: `backend/artifacts/met
 backend/app/     FastAPI app (api, ml, services, models)
 backend/models/  trained model + preprocessing config
 backend/tests/   pytest suite
+backend/artifacts/analysis/  committed study reports (validation and final test)
+backend/scripts/, kaggle/    study training and evaluation code (not needed to run the app)
 frontend/src/    React + Vite UI
 results/         metrics/configs and results/mitdb records
 sample_data/     demo records 100, 106, 228
