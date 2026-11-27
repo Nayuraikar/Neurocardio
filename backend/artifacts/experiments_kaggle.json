@@ -1,0 +1,3170 @@
+{
+ "runs": [
+  {
+   "run_id": "interpatient_v1__baseline__seed42__timing",
+   "variant": "baseline",
+   "spec": {
+    "loss": "sqrt_weighted_ce",
+    "sampler": "shuffle",
+    "context": "none"
+   },
+   "split": "interpatient_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T20:41:52+00:00",
+   "split_sha256": "97f03f5b0629d8543716488a80e1e0b1dee4fd009ff994f1ca0b0054a5643850",
+   "script_sha256": "aab2513f607826914c3d73b95eea603e720db8cd40ed19042b5373480003d81f",
+   "max_epochs": 2,
+   "note": "smoke/timing run; not a result",
+   "finished_at": "2026-11-26T20:47:11+00:00",
+   "epochs": 2,
+   "best_epoch": 2,
+   "seconds": 309,
+   "mean_epoch_seconds": 150.1,
+   "class_weights": [
+    0.5282426124003464,
+    3.7286482696917314,
+    1.8098912959718307,
+    5.058369407608522
+   ],
+   "validation": {
+    "macro_f1": 0.2608127140241324,
+    "per_class": {
+     "N": {
+      "precision": 0.9447018533440773,
+      "recall": 0.7002389129460953,
+      "f1": 0.8043049481176572,
+      "support": 13394
+     },
+     "S": {
+      "precision": 0.11764705882352941,
+      "recall": 0.06535947712418301,
+      "f1": 0.08403361344537816,
+      "support": 306
+     },
+     "V": {
+      "precision": 0.08136735676456427,
+      "recall": 0.38940092165898615,
+      "f1": 0.13460772600557547,
+      "support": 868
+     },
+     "F": {
+      "precision": 0.011267605633802818,
+      "recall": 0.10256410256410256,
+      "f1": 0.02030456852791878,
+      "support": 39
+     }
+    }
+   }
+  },
+  {
+   "run_id": "interpatient_v1__focal_g2__seed42__smoke",
+   "variant": "focal_g2",
+   "spec": {
+    "loss": "focal_g2",
+    "sampler": "shuffle",
+    "context": "none"
+   },
+   "split": "interpatient_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T20:47:45+00:00",
+   "split_sha256": "97f03f5b0629d8543716488a80e1e0b1dee4fd009ff994f1ca0b0054a5643850",
+   "script_sha256": "c80da2dc59feac1f8f73453e100dcee0f62cce0d95805ec6011a3d6218751cb6",
+   "max_epochs": 1,
+   "note": "smoke/timing run; not a result",
+   "finished_at": "2026-11-26T20:48:32+00:00",
+   "epochs": 1,
+   "best_epoch": 1,
+   "seconds": 37,
+   "mean_epoch_seconds": 28.8,
+   "class_weights": [
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "validation": {
+    "macro_f1": 0.2391700296417985,
+    "per_class": {
+     "N": {
+      "precision": 0.9169576230574382,
+      "recall": 1.0,
+      "f1": 0.956680118567194,
+      "support": 13394
+     },
+     "S": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 306
+     },
+     "V": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 868
+     },
+     "F": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 39
+     }
+    }
+   }
+  },
+  {
+   "run_id": "interpatient_v1__cb_focal__seed42__smoke",
+   "variant": "cb_focal",
+   "spec": {
+    "loss": "class_balanced_focal",
+    "sampler": "shuffle",
+    "context": "none"
+   },
+   "split": "interpatient_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T20:48:34+00:00",
+   "split_sha256": "97f03f5b0629d8543716488a80e1e0b1dee4fd009ff994f1ca0b0054a5643850",
+   "script_sha256": "c80da2dc59feac1f8f73453e100dcee0f62cce0d95805ec6011a3d6218751cb6",
+   "max_epochs": 1,
+   "note": "smoke/timing run; not a result",
+   "finished_at": "2026-11-26T20:49:24+00:00",
+   "epochs": 1,
+   "best_epoch": 1,
+   "seconds": 42,
+   "mean_epoch_seconds": 33.0,
+   "class_weights": [
+    0.5519502178024943,
+    1.1047856678423917,
+    0.582807978610939,
+    1.7604561357441744
+   ],
+   "validation": {
+    "macro_f1": 0.23917625205401158,
+    "per_class": {
+     "N": {
+      "precision": 0.9171917808219178,
+      "recall": 0.9997760191130357,
+      "f1": 0.9567050082160463,
+      "support": 13394
+     },
+     "S": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 306
+     },
+     "V": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 868
+     },
+     "F": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 39
+     }
+    }
+   }
+  },
+  {
+   "run_id": "interpatient_v1__balanced_sampler__seed42__smoke",
+   "variant": "balanced_sampler",
+   "spec": {
+    "loss": "ce",
+    "sampler": "balanced",
+    "context": "none"
+   },
+   "split": "interpatient_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T20:49:26+00:00",
+   "split_sha256": "97f03f5b0629d8543716488a80e1e0b1dee4fd009ff994f1ca0b0054a5643850",
+   "script_sha256": "c80da2dc59feac1f8f73453e100dcee0f62cce0d95805ec6011a3d6218751cb6",
+   "max_epochs": 1,
+   "note": "smoke/timing run; not a result",
+   "finished_at": "2026-11-26T20:50:23+00:00",
+   "epochs": 1,
+   "best_epoch": 1,
+   "seconds": 48,
+   "mean_epoch_seconds": 39.4,
+   "class_weights": [
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "validation": {
+    "macro_f1": 0.17959058716688106,
+    "per_class": {
+     "N": {
+      "precision": 0.8907633405120843,
+      "recall": 0.5558459011497685,
+      "f1": 0.6845347554247885,
+      "support": 13394
+     },
+     "S": {
+      "precision": 0.010890280424720936,
+      "recall": 0.13071895424836602,
+      "f1": 0.020105554159336517,
+      "support": 306
+     },
+     "V": {
+      "precision": 0.046511627906976744,
+      "recall": 0.002304147465437788,
+      "f1": 0.0043907793633369925,
+      "support": 868
+     },
+     "F": {
+      "precision": 0.00473746545598105,
+      "recall": 0.3076923076923077,
+      "f1": 0.00933125972006221,
+      "support": 39
+     }
+    }
+   }
+  },
+  {
+   "run_id": "interpatient_v1__rr_context__seed42__smoke",
+   "variant": "rr_context",
+   "spec": {
+    "loss": "sqrt_weighted_ce",
+    "sampler": "shuffle",
+    "context": "rr"
+   },
+   "split": "interpatient_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T20:50:26+00:00",
+   "split_sha256": "97f03f5b0629d8543716488a80e1e0b1dee4fd009ff994f1ca0b0054a5643850",
+   "script_sha256": "c80da2dc59feac1f8f73453e100dcee0f62cce0d95805ec6011a3d6218751cb6",
+   "max_epochs": 1,
+   "note": "smoke/timing run; not a result",
+   "finished_at": "2026-11-26T20:51:12+00:00",
+   "epochs": 1,
+   "best_epoch": 1,
+   "seconds": 37,
+   "mean_epoch_seconds": 28.9,
+   "class_weights": [
+    0.5282426124003464,
+    3.7286482696917314,
+    1.8098912959718307,
+    5.058369407608522
+   ],
+   "validation": {
+    "macro_f1": 0.3370652727437805,
+    "per_class": {
+     "N": {
+      "precision": 0.9370124241548685,
+      "recall": 0.9684933552336867,
+      "f1": 0.952492840884059,
+      "support": 13394
+     },
+     "S": {
+      "precision": 0.20977917981072555,
+      "recall": 0.434640522875817,
+      "f1": 0.28297872340425534,
+      "support": 306
+     },
+     "V": {
+      "precision": 0.448,
+      "recall": 0.06451612903225806,
+      "f1": 0.11278952668680765,
+      "support": 868
+     },
+     "F": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 39
+     }
+    }
+   }
+  },
+  {
+   "run_id": "cv5_dev_it0__baseline__seed42__smoke",
+   "variant": "baseline",
+   "spec": {
+    "loss": "sqrt_weighted_ce",
+    "sampler": "shuffle",
+    "context": "none"
+   },
+   "split": "cv5_dev_it0",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T20:53:43+00:00",
+   "split_sha256": "9443bd0a0c195ffb8b8124dd0b24771feaf37377f66a4a573c128a97c09665e7",
+   "script_sha256": "2f0acfd0f32b25eea260360024f265bc62b2dc5dd4b8099198a229483c656773",
+   "max_epochs": 1,
+   "note": "smoke/timing run; not a result",
+   "evaluation_fold": {
+    "macro_f1": 0.22899863831570128,
+    "per_class": {
+     "N": {
+      "precision": 0.8450091796308822,
+      "recall": 1.0,
+      "f1": 0.9159945532628051,
+      "support": 8745
+     },
+     "S": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 142
+     },
+     "V": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 1081
+     },
+     "F": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 381
+     }
+    }
+   },
+   "finished_at": "2026-11-26T20:54:30+00:00",
+   "epochs": 1,
+   "best_epoch": 1,
+   "seconds": 39,
+   "mean_epoch_seconds": 25.8,
+   "class_weights": [
+    0.5246303630977497,
+    3.200987898979277,
+    1.942106221297679,
+    15.723672311764256
+   ],
+   "validation": {
+    "macro_f1": 0.24140808902204153,
+    "per_class": {
+     "N": {
+      "precision": 0.9335484938762,
+      "recall": 1.0,
+      "f1": 0.9656323560881661,
+      "support": 11281
+     },
+     "S": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 108
+     },
+     "V": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 692
+     },
+     "F": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "support": 3
+     }
+    }
+   }
+  },
+  {
+   "run_id": "interpatient_v1__baseline__seed42",
+   "variant": "baseline",
+   "spec": {
+    "loss": "sqrt_weighted_ce",
+    "sampler": "shuffle",
+    "context": "none"
+   },
+   "split": "interpatient_v1",
+   "seed": 42,
+   "status": "interrupted",
+   "started_at": "2026-11-26T20:54:41+00:00",
+   "split_sha256": "97f03f5b0629d8543716488a80e1e0b1dee4fd009ff994f1ca0b0054a5643850",
+   "script_sha256": "2f0acfd0f32b25eea260360024f265bc62b2dc5dd4b8099198a229483c656773",
+   "max_epochs": 100,
+   "finished_at": "2026-11-26T20:57:55+00:00",
+   "error": "Stopped on user request before the first epoch finished (local CPU run replaced by Kaggle)."
+  },
+  {
+   "run_id": "multidb_v1__cnn_bilstm__seed42",
+   "kind": "multidb_training",
+   "variant": "cnn_bilstm",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T23:39:31+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "cnn_bilstm",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 142980,
+   "trainable_parameter_count": 142788,
+   "steps_per_epoch": 4255,
+   "epochs": 18,
+   "best_epoch": 13,
+   "mean_ms_per_batch": 24.6,
+   "mean_epoch_seconds": 110.8,
+   "finished_at": "2026-11-27T00:13:11+00:00",
+   "seconds": 2020,
+   "validation": {
+    "macro_f1": 0.6604030257693874,
+    "per_class": {
+     "N": {
+      "precision": 0.9907220551092157,
+      "recall": 0.9789187223316068,
+      "f1": 0.9847850222042793,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.693891797556719,
+      "recall": 0.6766507828454731,
+      "f1": 0.6851628468033776,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8721522380058966,
+      "recall": 0.9163615882849901,
+      "f1": 0.8937105190881626,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.0431266846361186,
+      "recall": 0.4050632911392405,
+      "f1": 0.0779537149817296,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion__seed42",
+   "kind": "multidb_training",
+   "variant": "rr_fusion",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-26T23:39:31+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 144100,
+   "trainable_parameter_count": 143908,
+   "steps_per_epoch": 4255,
+   "epochs": 19,
+   "best_epoch": 14,
+   "mean_ms_per_batch": 24.9,
+   "mean_epoch_seconds": 112.3,
+   "finished_at": "2026-11-27T00:15:31+00:00",
+   "seconds": 2161,
+   "validation": {
+    "macro_f1": 0.6802851382980326,
+    "per_class": {
+     "N": {
+      "precision": 0.9896197263038405,
+      "recall": 0.9839852518842724,
+      "f1": 0.9867944461213402,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7646638054363376,
+      "recall": 0.7277059223961879,
+      "f1": 0.7457272410184862,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8880319515218289,
+      "recall": 0.9079132638693326,
+      "f1": 0.8978625635312957,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.05232558139534884,
+      "recall": 0.34177215189873417,
+      "f1": 0.0907563025210084,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion_attn__seed42",
+   "kind": "multidb_training",
+   "variant": "rr_fusion_attn",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-27T00:13:13+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion_attn",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 152420,
+   "trainable_parameter_count": 152228,
+   "steps_per_epoch": 4255,
+   "epochs": 7,
+   "best_epoch": 2,
+   "mean_ms_per_batch": 26.7,
+   "mean_epoch_seconds": 120.3,
+   "finished_at": "2026-11-27T00:27:46+00:00",
+   "seconds": 872,
+   "validation": {
+    "macro_f1": 0.6047504469328588,
+    "per_class": {
+     "N": {
+      "precision": 0.9918047714441813,
+      "recall": 0.9561695030035491,
+      "f1": 0.9736611903226424,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.6422967189728959,
+      "recall": 0.6130020422055821,
+      "f1": 0.6273075583420411,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.7752269779507134,
+      "recall": 0.8415939172064207,
+      "f1": 0.8070483391844451,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.005668016194331984,
+      "recall": 0.17721518987341772,
+      "f1": 0.010984699882306787,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__cnn__seed42",
+   "kind": "multidb_training",
+   "variant": "cnn",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-27T00:27:48+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "cnn",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 109700,
+   "trainable_parameter_count": 109508,
+   "steps_per_epoch": 4255,
+   "epochs": 16,
+   "best_epoch": 11,
+   "mean_ms_per_batch": 11.2,
+   "mean_epoch_seconds": 51.5,
+   "finished_at": "2026-11-27T00:42:00+00:00",
+   "seconds": 852,
+   "validation": {
+    "macro_f1": 0.6645665657985519,
+    "per_class": {
+     "N": {
+      "precision": 0.9876050791406862,
+      "recall": 0.9812513324721905,
+      "f1": 0.9844179536375932,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.6454322716135806,
+      "recall": 0.627637848876787,
+      "f1": 0.6364106988783435,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.871085313174946,
+      "recall": 0.9086172909039707,
+      "f1": 0.8894555478980014,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.08991825613079019,
+      "recall": 0.4177215189873418,
+      "f1": 0.14798206278026907,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion_attn_shead__seed42",
+   "kind": "multidb_training",
+   "variant": "rr_fusion_attn_shead",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-27T00:15:34+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion_attn_shead",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 157093,
+   "trainable_parameter_count": 156901,
+   "steps_per_epoch": 4255,
+   "s_head": {
+    "lambda": 0.5,
+    "positive_weight": 3.2975793886901945,
+    "used_at_inference": false
+   },
+   "epochs": 16,
+   "best_epoch": 11,
+   "mean_ms_per_batch": 28.2,
+   "mean_epoch_seconds": 126.8,
+   "finished_at": "2026-11-27T00:49:53+00:00",
+   "seconds": 2059,
+   "validation": {
+    "macro_f1": 0.6438373506367365,
+    "per_class": {
+     "N": {
+      "precision": 0.9915539029657173,
+      "recall": 0.973174983383288,
+      "f1": 0.9822784810126582,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7348148148148148,
+      "recall": 0.675289312457454,
+      "f1": 0.7037956722241929,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8137066871244086,
+      "recall": 0.896085609687412,
+      "f1": 0.8529116129464585,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.019516728624535316,
+      "recall": 0.26582278481012656,
+      "f1": 0.03636363636363636,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__lstm__seed42",
+   "kind": "multidb_training",
+   "variant": "lstm",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-27T00:42:02+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "lstm",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 144708,
+   "trainable_parameter_count": 144708,
+   "steps_per_epoch": 4255,
+   "epochs": 8,
+   "best_epoch": 3,
+   "mean_ms_per_batch": 23.7,
+   "mean_epoch_seconds": 104.7,
+   "finished_at": "2026-11-27T00:56:28+00:00",
+   "seconds": 866,
+   "validation": {
+    "macro_f1": 0.6164177637381583,
+    "per_class": {
+     "N": {
+      "precision": 0.9907112698928223,
+      "recall": 0.9563701576392982,
+      "f1": 0.9732378728128949,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.4542138606258399,
+      "recall": 0.8053097345132744,
+      "f1": 0.5808272983920462,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8609022556390977,
+      "recall": 0.8383553928470854,
+      "f1": 0.8494792409758881,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.03430079155672823,
+      "recall": 0.3291139240506329,
+      "f1": 0.06212664277180406,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__resnet1d__seed42",
+   "kind": "multidb_training",
+   "variant": "resnet1d",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-27T00:49:55+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "resnet1d",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 411460,
+   "trainable_parameter_count": 409284,
+   "steps_per_epoch": 4255,
+   "epochs": 11,
+   "best_epoch": 6,
+   "mean_ms_per_batch": 26.2,
+   "mean_epoch_seconds": 115.4,
+   "finished_at": "2026-11-27T01:11:33+00:00",
+   "seconds": 1298,
+   "validation": {
+    "macro_f1": 0.6380085633949862,
+    "per_class": {
+     "N": {
+      "precision": 0.9933247588424438,
+      "recall": 0.9685473858463236,
+      "f1": 0.9807796100045083,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.5100997809686055,
+      "recall": 0.7134104833219878,
+      "f1": 0.5948630622960125,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8855897575592482,
+      "recall": 0.9155167558434244,
+      "f1": 0.9003046247576848,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.0426179604261796,
+      "recall": 0.35443037974683544,
+      "f1": 0.07608695652173914,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__cnn_bilstm__seed11",
+   "kind": "multidb_training",
+   "variant": "cnn_bilstm",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T00:56:30+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "cnn_bilstm",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 142980,
+   "trainable_parameter_count": 142788,
+   "steps_per_epoch": 4255,
+   "epochs": 10,
+   "best_epoch": 5,
+   "mean_ms_per_batch": 25.7,
+   "mean_epoch_seconds": 115.6,
+   "finished_at": "2026-11-27T01:16:17+00:00",
+   "seconds": 1187,
+   "validation": {
+    "macro_f1": 0.6586687934639319,
+    "per_class": {
+     "N": {
+      "precision": 0.9913148987802541,
+      "recall": 0.9733630971043028,
+      "f1": 0.9822569826746144,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.5915841584158416,
+      "recall": 0.8134785568413887,
+      "f1": 0.6850100315276584,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8651287857345032,
+      "recall": 0.8607434525485779,
+      "f1": 0.8629305477131564,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.061269146608315096,
+      "recall": 0.35443037974683544,
+      "f1": 0.1044776119402985,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion__seed11",
+   "kind": "multidb_training",
+   "variant": "rr_fusion",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T01:11:36+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 144100,
+   "trainable_parameter_count": 143908,
+   "steps_per_epoch": 4255,
+   "epochs": 14,
+   "best_epoch": 9,
+   "mean_ms_per_batch": 25.6,
+   "mean_epoch_seconds": 115.1,
+   "finished_at": "2026-11-27T01:38:57+00:00",
+   "seconds": 1642,
+   "validation": {
+    "macro_f1": 0.6801200619617535,
+    "per_class": {
+     "N": {
+      "precision": 0.9916461916461916,
+      "recall": 0.9869950714205095,
+      "f1": 0.989315164923572,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7106382978723405,
+      "recall": 0.8526208304969367,
+      "f1": 0.7751818041157357,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.930849432689359,
+      "recall": 0.8548296254576175,
+      "f1": 0.8912213740458015,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.03811659192825112,
+      "recall": 0.21518987341772153,
+      "f1": 0.06476190476190476,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion_attn__seed11",
+   "kind": "multidb_training",
+   "variant": "rr_fusion_attn",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T01:16:20+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion_attn",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 152420,
+   "trainable_parameter_count": 152228,
+   "steps_per_epoch": 4255,
+   "epochs": 18,
+   "best_epoch": 13,
+   "mean_ms_per_batch": 26.7,
+   "mean_epoch_seconds": 120.2,
+   "finished_at": "2026-11-27T01:53:16+00:00",
+   "seconds": 2216,
+   "validation": {
+    "macro_f1": 0.652450359086656,
+    "per_class": {
+     "N": {
+      "precision": 0.9908515666692079,
+      "recall": 0.9779656128117985,
+      "f1": 0.9843664203078748,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7180212014134275,
+      "recall": 0.6916269571136828,
+      "f1": 0.7045769764216366,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8072855464159812,
+      "recall": 0.8705998310335117,
+      "f1": 0.8377481200460674,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.046476761619190406,
+      "recall": 0.3924050632911392,
+      "f1": 0.08310991957104558,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__cnn__seed11",
+   "kind": "multidb_training",
+   "variant": "cnn",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T01:53:18+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "cnn",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 109700,
+   "trainable_parameter_count": 109508,
+   "steps_per_epoch": 4255,
+   "epochs": 14,
+   "best_epoch": 9,
+   "mean_ms_per_batch": 11.7,
+   "mean_epoch_seconds": 53.7,
+   "finished_at": "2026-11-27T02:06:18+00:00",
+   "seconds": 780,
+   "validation": {
+    "macro_f1": 0.664666145876653,
+    "per_class": {
+     "N": {
+      "precision": 0.9888448945404705,
+      "recall": 0.9771755351835363,
+      "f1": 0.9829755829869368,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.5886001181334909,
+      "recall": 0.678352620830497,
+      "f1": 0.6302972802024035,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8800757985923119,
+      "recall": 0.9155167558434244,
+      "f1": 0.8974465148378192,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.0944055944055944,
+      "recall": 0.34177215189873417,
+      "f1": 0.14794520547945206,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion_attn_shead__seed11",
+   "kind": "multidb_training",
+   "variant": "rr_fusion_attn_shead",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T01:39:00+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion_attn_shead",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 157093,
+   "trainable_parameter_count": 156901,
+   "steps_per_epoch": 4255,
+   "s_head": {
+    "lambda": 0.5,
+    "positive_weight": 3.2975793886901945,
+    "used_at_inference": false
+   },
+   "epochs": 15,
+   "best_epoch": 10,
+   "mean_ms_per_batch": 28.5,
+   "mean_epoch_seconds": 128.1,
+   "finished_at": "2026-11-27T02:11:33+00:00",
+   "seconds": 1953,
+   "validation": {
+    "macro_f1": 0.6663886400745362,
+    "per_class": {
+     "N": {
+      "precision": 0.991045305434879,
+      "recall": 0.9812764143016591,
+      "f1": 0.9861366672548081,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.6496371552975326,
+      "recall": 0.7617426820966644,
+      "f1": 0.7012376625411249,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8704641350210971,
+      "recall": 0.8714446634750774,
+      "f1": 0.8709541232761047,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.06571428571428571,
+      "recall": 0.2911392405063291,
+      "f1": 0.10722610722610723,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__lstm__seed11",
+   "kind": "multidb_training",
+   "variant": "lstm",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T02:06:20+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "lstm",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 144708,
+   "trainable_parameter_count": 144708,
+   "steps_per_epoch": 4255,
+   "epochs": 10,
+   "best_epoch": 5,
+   "mean_ms_per_batch": 23.2,
+   "mean_epoch_seconds": 102.3,
+   "finished_at": "2026-11-27T02:23:51+00:00",
+   "seconds": 1051,
+   "validation": {
+    "macro_f1": 0.6326098445117506,
+    "per_class": {
+     "N": {
+      "precision": 0.993326595138133,
+      "recall": 0.9613489007888235,
+      "f1": 0.9770761769410685,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.4951807228915663,
+      "recall": 0.8393464942137508,
+      "f1": 0.6228845668098004,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8712396454003779,
+      "recall": 0.844128414531118,
+      "f1": 0.8574697847386111,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.04,
+      "recall": 0.4177215189873418,
+      "f1": 0.07300884955752213,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__resnet1d__seed11",
+   "kind": "multidb_training",
+   "variant": "resnet1d",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T02:11:35+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "resnet1d",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 411460,
+   "trainable_parameter_count": 409284,
+   "steps_per_epoch": 4255,
+   "epochs": 9,
+   "best_epoch": 4,
+   "mean_ms_per_batch": 26.8,
+   "mean_epoch_seconds": 118.1,
+   "finished_at": "2026-11-27T02:29:47+00:00",
+   "seconds": 1092,
+   "validation": {
+    "macro_f1": 0.6448280549359049,
+    "per_class": {
+     "N": {
+      "precision": 0.9933823434743985,
+      "recall": 0.9676193581559839,
+      "f1": 0.9803316180674672,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.5341196293176074,
+      "recall": 0.8631722260040844,
+      "f1": 0.6599011189175124,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8893567591113692,
+      "recall": 0.8624331174317094,
+      "f1": 0.8756880406033312,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.036231884057971016,
+      "recall": 0.25316455696202533,
+      "f1": 0.06339144215530904,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__cnn_bilstm__seed22",
+   "kind": "multidb_training",
+   "variant": "cnn_bilstm",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T02:23:53+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "cnn_bilstm",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 142980,
+   "trainable_parameter_count": 142788,
+   "steps_per_epoch": 4255,
+   "epochs": 11,
+   "best_epoch": 6,
+   "mean_ms_per_batch": 25.6,
+   "mean_epoch_seconds": 115.2,
+   "finished_at": "2026-11-27T02:45:31+00:00",
+   "seconds": 1297,
+   "validation": {
+    "macro_f1": 0.6312638562859657,
+    "per_class": {
+     "N": {
+      "precision": 0.989420764468096,
+      "recall": 0.9699770501260362,
+      "f1": 0.9796024342826022,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.5528061224489796,
+      "recall": 0.737576582709326,
+      "f1": 0.6319626713327501,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8373769582697906,
+      "recall": 0.8504646578428612,
+      "f1": 0.8438700663639539,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.039783001808318265,
+      "recall": 0.27848101265822783,
+      "f1": 0.06962025316455696,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion__seed22",
+   "kind": "multidb_training",
+   "variant": "rr_fusion",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T02:29:50+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 144100,
+   "trainable_parameter_count": 143908,
+   "steps_per_epoch": 4255,
+   "epochs": 21,
+   "best_epoch": 16,
+   "mean_ms_per_batch": 25.7,
+   "mean_epoch_seconds": 115.7,
+   "finished_at": "2026-11-27T03:10:50+00:00",
+   "seconds": 2461,
+   "validation": {
+    "macro_f1": 0.6956667066025147,
+    "per_class": {
+     "N": {
+      "precision": 0.9893502393063873,
+      "recall": 0.9902807910809014,
+      "f1": 0.9898152964845537,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7752767527675277,
+      "recall": 0.7151123213070115,
+      "f1": 0.7439801699716714,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.9138892862251466,
+      "recall": 0.8996057448606026,
+      "f1": 0.9066912651671042,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.08746355685131195,
+      "recall": 0.379746835443038,
+      "f1": 0.14218009478672985,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion_attn__seed22",
+   "kind": "multidb_training",
+   "variant": "rr_fusion_attn",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T02:45:33+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion_attn",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 152420,
+   "trainable_parameter_count": 152228,
+   "steps_per_epoch": 4255,
+   "epochs": 20,
+   "best_epoch": 15,
+   "mean_ms_per_batch": 26.9,
+   "mean_epoch_seconds": 121.4,
+   "finished_at": "2026-11-27T03:26:32+00:00",
+   "seconds": 2459,
+   "validation": {
+    "macro_f1": 0.6650197860007678,
+    "per_class": {
+     "N": {
+      "precision": 0.990054661402976,
+      "recall": 0.9812764143016591,
+      "f1": 0.9856459932859275,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7820932134096484,
+      "recall": 0.6511232130701157,
+      "f1": 0.7106240713224369,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8202304089125205,
+      "recall": 0.912278231484089,
+      "f1": 0.863809079394707,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.058212058212058215,
+      "recall": 0.35443037974683544,
+      "f1": 0.1,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__rr_fusion_attn_shead__seed22",
+   "kind": "multidb_training",
+   "variant": "rr_fusion_attn_shead",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T03:10:53+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "rr_fusion_attn_shead",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 157093,
+   "trainable_parameter_count": 156901,
+   "steps_per_epoch": 4255,
+   "s_head": {
+    "lambda": 0.5,
+    "positive_weight": 3.2975793886901945,
+    "used_at_inference": false
+   },
+   "epochs": 8,
+   "best_epoch": 3,
+   "mean_ms_per_batch": 27.8,
+   "mean_epoch_seconds": 125.2,
+   "finished_at": "2026-11-27T03:28:06+00:00",
+   "seconds": 1033,
+   "validation": {
+    "macro_f1": 0.6551236192274128,
+    "per_class": {
+     "N": {
+      "precision": 0.9911552713060251,
+      "recall": 0.9795332271535886,
+      "f1": 0.9853099789962345,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7624951569159241,
+      "recall": 0.6698434309053778,
+      "f1": 0.7131726762094582,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.7914317925591883,
+      "recall": 0.8896085609687412,
+      "f1": 0.8376532979781239,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.04897959183673469,
+      "recall": 0.3037974683544304,
+      "f1": 0.0843585237258348,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__cnn__seed22",
+   "kind": "multidb_training",
+   "variant": "cnn",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T03:26:34+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "cnn",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 109700,
+   "trainable_parameter_count": 109508,
+   "steps_per_epoch": 4255,
+   "epochs": 23,
+   "best_epoch": 18,
+   "mean_ms_per_batch": 11.0,
+   "mean_epoch_seconds": 50.7,
+   "finished_at": "2026-11-27T03:46:29+00:00",
+   "seconds": 1195,
+   "validation": {
+    "macro_f1": 0.6711920155515636,
+    "per_class": {
+     "N": {
+      "precision": 0.9903857217740389,
+      "recall": 0.9714819598941546,
+      "f1": 0.9808427663399935,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.5916359163591636,
+      "recall": 0.6548672566371682,
+      "f1": 0.6216478190630048,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8058146577831617,
+      "recall": 0.9366375668825683,
+      "f1": 0.8663150354887023,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.17164179104477612,
+      "recall": 0.2911392405063291,
+      "f1": 0.215962441314554,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__lstm__seed22",
+   "kind": "multidb_training",
+   "variant": "lstm",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T03:28:09+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "lstm",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 144708,
+   "trainable_parameter_count": 144708,
+   "steps_per_epoch": 4255,
+   "epochs": 14,
+   "best_epoch": 9,
+   "mean_ms_per_batch": 22.2,
+   "mean_epoch_seconds": 98.1,
+   "finished_at": "2026-11-27T03:51:32+00:00",
+   "seconds": 1403,
+   "validation": {
+    "macro_f1": 0.6137797103636103,
+    "per_class": {
+     "N": {
+      "precision": 0.990432166513874,
+      "recall": 0.9619634056108053,
+      "f1": 0.9759902281373659,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.4463804190002074,
+      "recall": 0.7324710687542546,
+      "f1": 0.5547106585900244,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8830879071842928,
+      "recall": 0.8359617009293157,
+      "f1": 0.858878842676311,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.03575547866205306,
+      "recall": 0.3924050632911392,
+      "f1": 0.06553911205073996,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__resnet1d__seed22",
+   "kind": "multidb_training",
+   "variant": "resnet1d",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T03:46:31+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "resnet1d",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "environment": {
+    "gpu": true,
+    "gpu_names": [
+     "Tesla T4"
+    ],
+    "deterministic_ops": true,
+    "precision": "float32",
+    "python": "3.13.16",
+    "tensorflow": "2.21.0",
+    "keras": "3.13.2"
+   },
+   "train_counts_post_augmentation": [
+    227679,
+    22934,
+    19678,
+    2028
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "rr_mean": [
+    0.7590659856796265,
+    0.7695273756980896,
+    0.9918941855430603,
+    1.004555106163025,
+    0.9910582900047302
+   ],
+   "rr_std": [
+    0.29844045639038086,
+    0.3000984489917755,
+    0.2964603304862976,
+    0.2949293851852417,
+    0.16538022458553314
+   ],
+   "parameter_count": 411460,
+   "trainable_parameter_count": 409284,
+   "steps_per_epoch": 4255,
+   "epochs": 12,
+   "best_epoch": 7,
+   "mean_ms_per_batch": 23.4,
+   "mean_epoch_seconds": 103.5,
+   "finished_at": "2026-11-27T04:07:41+00:00",
+   "seconds": 1269,
+   "validation": {
+    "macro_f1": 0.6187447601152971,
+    "per_class": {
+     "N": {
+      "precision": 0.9945159194282002,
+      "recall": 0.9597311227880961,
+      "f1": 0.9768139435442181,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.45037375415282394,
+      "recall": 0.7382573179033356,
+      "f1": 0.5594531854526696,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8642365887207702,
+      "recall": 0.8846803717262743,
+      "f1": 0.8743389924853883,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.03527980535279805,
+      "recall": 0.3670886075949367,
+      "f1": 0.06437291897891231,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__gbm__seed42",
+   "kind": "multidb_training",
+   "variant": "gbm",
+   "split": "multidb_v1",
+   "seed": 42,
+   "status": "completed",
+   "started_at": "2026-11-27T04:07:43+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "gbm",
+    "seed": 42,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "parameter_count": null,
+   "feature_count": 121,
+   "gbm": {
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 31,
+    "l2_regularization": 1.0,
+    "min_samples_leaf": 50,
+    "max_features": 0.8
+   },
+   "best_iterations": 300,
+   "tree_count": 1200,
+   "leaf_count": 37200,
+   "history": [
+    {
+     "iterations": 20,
+     "val_macro_f1": 0.6671476068851562
+    },
+    {
+     "iterations": 40,
+     "val_macro_f1": 0.6765493551119236
+    },
+    {
+     "iterations": 60,
+     "val_macro_f1": 0.6832158169712598
+    },
+    {
+     "iterations": 80,
+     "val_macro_f1": 0.6836156904698196
+    },
+    {
+     "iterations": 100,
+     "val_macro_f1": 0.6846367197888872
+    },
+    {
+     "iterations": 120,
+     "val_macro_f1": 0.6889459662182442
+    },
+    {
+     "iterations": 140,
+     "val_macro_f1": 0.6936563789766358
+    },
+    {
+     "iterations": 160,
+     "val_macro_f1": 0.6932027998058666
+    },
+    {
+     "iterations": 180,
+     "val_macro_f1": 0.6942170708752419
+    },
+    {
+     "iterations": 200,
+     "val_macro_f1": 0.6962186973260991
+    },
+    {
+     "iterations": 220,
+     "val_macro_f1": 0.6952328931191603
+    },
+    {
+     "iterations": 240,
+     "val_macro_f1": 0.6980595571739138
+    },
+    {
+     "iterations": 260,
+     "val_macro_f1": 0.6986759224396933
+    },
+    {
+     "iterations": 280,
+     "val_macro_f1": 0.698514904957506
+    },
+    {
+     "iterations": 300,
+     "val_macro_f1": 0.6999128530243865
+    },
+    {
+     "iterations": 320,
+     "val_macro_f1": 0.6996645633367423
+    },
+    {
+     "iterations": 340,
+     "val_macro_f1": 0.697351901614558
+    },
+    {
+     "iterations": 360,
+     "val_macro_f1": 0.696541986798878
+    },
+    {
+     "iterations": 380,
+     "val_macro_f1": 0.6964130398520816
+    },
+    {
+     "iterations": 400,
+     "val_macro_f1": 0.6974701313782282
+    }
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "augmentation_used": false,
+   "sklearn": "1.6.1",
+   "finished_at": "2026-11-27T04:17:24+00:00",
+   "seconds": 582,
+   "validation": {
+    "macro_f1": 0.6999128530243865,
+    "per_class": {
+     "N": {
+      "precision": 0.9923500420120643,
+      "recall": 0.9923500420120643,
+      "f1": 0.9923500420120643,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.8187579214195184,
+      "recall": 0.6596324029952348,
+      "f1": 0.730631479736098,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.8799630655586335,
+      "recall": 0.9393128696141931,
+      "f1": 0.9086698903493836,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.12280701754385964,
+      "recall": 0.26582278481012656,
+      "f1": 0.168,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__gbm__seed11",
+   "kind": "multidb_training",
+   "variant": "gbm",
+   "split": "multidb_v1",
+   "seed": 11,
+   "status": "completed",
+   "started_at": "2026-11-27T04:17:25+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "gbm",
+    "seed": 11,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "parameter_count": null,
+   "feature_count": 121,
+   "gbm": {
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 31,
+    "l2_regularization": 1.0,
+    "min_samples_leaf": 50,
+    "max_features": 0.8
+   },
+   "best_iterations": 280,
+   "tree_count": 1120,
+   "leaf_count": 34720,
+   "history": [
+    {
+     "iterations": 20,
+     "val_macro_f1": 0.6679305478392875
+    },
+    {
+     "iterations": 40,
+     "val_macro_f1": 0.6812914476565967
+    },
+    {
+     "iterations": 60,
+     "val_macro_f1": 0.6862678269777709
+    },
+    {
+     "iterations": 80,
+     "val_macro_f1": 0.6874516025607916
+    },
+    {
+     "iterations": 100,
+     "val_macro_f1": 0.6918263651775591
+    },
+    {
+     "iterations": 120,
+     "val_macro_f1": 0.6927574641856894
+    },
+    {
+     "iterations": 140,
+     "val_macro_f1": 0.6920166187076854
+    },
+    {
+     "iterations": 160,
+     "val_macro_f1": 0.6923271050992746
+    },
+    {
+     "iterations": 180,
+     "val_macro_f1": 0.6945793222127256
+    },
+    {
+     "iterations": 200,
+     "val_macro_f1": 0.6946114169726382
+    },
+    {
+     "iterations": 220,
+     "val_macro_f1": 0.6943836114222328
+    },
+    {
+     "iterations": 240,
+     "val_macro_f1": 0.6944353976244851
+    },
+    {
+     "iterations": 260,
+     "val_macro_f1": 0.6948712938232613
+    },
+    {
+     "iterations": 280,
+     "val_macro_f1": 0.6954001625927642
+    },
+    {
+     "iterations": 300,
+     "val_macro_f1": 0.6944492502936815
+    },
+    {
+     "iterations": 320,
+     "val_macro_f1": 0.6941878225694557
+    },
+    {
+     "iterations": 340,
+     "val_macro_f1": 0.6940951479258792
+    },
+    {
+     "iterations": 360,
+     "val_macro_f1": 0.6937280526967707
+    },
+    {
+     "iterations": 380,
+     "val_macro_f1": 0.6934954550530331
+    }
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "augmentation_used": false,
+   "sklearn": "1.6.1",
+   "finished_at": "2026-11-27T04:26:54+00:00",
+   "seconds": 569,
+   "validation": {
+    "macro_f1": 0.6954001625927642,
+    "per_class": {
+     "N": {
+      "precision": 0.9924929071781867,
+      "recall": 0.9914847188953962,
+      "f1": 0.9919885568737178,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7906122448979592,
+      "recall": 0.6592920353982301,
+      "f1": 0.7190051967334818,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.879027997886952,
+      "recall": 0.9372007885102788,
+      "f1": 0.9071827722502385,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.11797752808988764,
+      "recall": 0.26582278481012656,
+      "f1": 0.16342412451361868,
+      "support": 79
+     }
+    }
+   }
+  },
+  {
+   "run_id": "multidb_v1__gbm__seed22",
+   "kind": "multidb_training",
+   "variant": "gbm",
+   "split": "multidb_v1",
+   "seed": 22,
+   "status": "completed",
+   "started_at": "2026-11-27T04:26:54+00:00",
+   "fingerprint": {
+    "protocol": 1,
+    "model": "gbm",
+    "seed": 22,
+    "split_sha256": "c95ba54ad32c89c5fda64a567fdbaa85c1991b47aa13d29480fa07d3079cf3a5",
+    "data_sha256": "d3ceb7fdaa60f6cf52c26622853b75ebeef877ccf33aa8b25b318d3fe1cc3f86",
+    "max_epochs": 25,
+    "limit": 0,
+    "batch_size": 64
+   },
+   "script_sha256": "a59b3c3e6675f9b4642c5f2cb92880a11cfa93f3ac679e4fbf8a24237654efab",
+   "models_sha256": "4e54425aa528058c0f83e463eef29d79c82c4c35cf368729a48a8540f8ab60a7",
+   "train_counts": [
+    227679,
+    11467,
+    19678,
+    507
+   ],
+   "validation_counts": [
+    79739,
+    2938,
+    7102,
+    79
+   ],
+   "parameter_count": null,
+   "feature_count": 121,
+   "gbm": {
+    "learning_rate": 0.1,
+    "max_leaf_nodes": 31,
+    "l2_regularization": 1.0,
+    "min_samples_leaf": 50,
+    "max_features": 0.8
+   },
+   "best_iterations": 340,
+   "tree_count": 1360,
+   "leaf_count": 42160,
+   "history": [
+    {
+     "iterations": 20,
+     "val_macro_f1": 0.6731624848837883
+    },
+    {
+     "iterations": 40,
+     "val_macro_f1": 0.6790722781376893
+    },
+    {
+     "iterations": 60,
+     "val_macro_f1": 0.6886945581235491
+    },
+    {
+     "iterations": 80,
+     "val_macro_f1": 0.6907972840908656
+    },
+    {
+     "iterations": 100,
+     "val_macro_f1": 0.6898585204471905
+    },
+    {
+     "iterations": 120,
+     "val_macro_f1": 0.6890879820611925
+    },
+    {
+     "iterations": 140,
+     "val_macro_f1": 0.69095206017591
+    },
+    {
+     "iterations": 160,
+     "val_macro_f1": 0.6923277025625446
+    },
+    {
+     "iterations": 180,
+     "val_macro_f1": 0.6922547739191742
+    },
+    {
+     "iterations": 200,
+     "val_macro_f1": 0.6935596014769253
+    },
+    {
+     "iterations": 220,
+     "val_macro_f1": 0.6928790314280641
+    },
+    {
+     "iterations": 240,
+     "val_macro_f1": 0.6930500007817003
+    },
+    {
+     "iterations": 260,
+     "val_macro_f1": 0.6958157173882469
+    },
+    {
+     "iterations": 280,
+     "val_macro_f1": 0.6956100401010034
+    },
+    {
+     "iterations": 300,
+     "val_macro_f1": 0.6959716736901649
+    },
+    {
+     "iterations": 320,
+     "val_macro_f1": 0.6961727458240096
+    },
+    {
+     "iterations": 340,
+     "val_macro_f1": 0.6963941351222138
+    },
+    {
+     "iterations": 360,
+     "val_macro_f1": 0.694141401961793
+    },
+    {
+     "iterations": 380,
+     "val_macro_f1": 0.6945652325196706
+    },
+    {
+     "iterations": 400,
+     "val_macro_f1": 0.6947445123667154
+    }
+   ],
+   "class_weights": [
+    0.5336244670492446,
+    2.377783534956922,
+    1.8151258574103502,
+    11.308193779217063
+   ],
+   "augmentation_used": false,
+   "sklearn": "1.6.1",
+   "finished_at": "2026-11-27T04:36:57+00:00",
+   "seconds": 603,
+   "validation": {
+    "macro_f1": 0.6963941351222138,
+    "per_class": {
+     "N": {
+      "precision": 0.9923304797529686,
+      "recall": 0.9914220143217246,
+      "f1": 0.991876039020106,
+      "support": 79739
+     },
+     "S": {
+      "precision": 0.7965819091288037,
+      "recall": 0.6504424778761062,
+      "f1": 0.716132658797077,
+      "support": 2938
+     },
+     "V": {
+      "precision": 0.87534516765286,
+      "recall": 0.9373415939172064,
+      "f1": 0.9052831984769157,
+      "support": 7102
+     },
+     "F": {
+      "precision": 0.12234042553191489,
+      "recall": 0.2911392405063291,
+      "f1": 0.17228464419475656,
+      "support": 79
+     }
+    }
+   }
+  }
+ ]
+}
