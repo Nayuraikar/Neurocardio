@@ -20,7 +20,7 @@ export function ErrorState({ error, onRetry, title = 'This could not be loaded' 
 }
 
 export function PartialNotice({ children }: { children: ReactNode }) {
-  return <div className="state state-warn" data-state="partial">{children}</div>
+  return <div className="state state-warn" data-state="partial"><div>{children}</div></div>
 }
 
 export function SuccessBanner({ children }: { children: ReactNode }) {

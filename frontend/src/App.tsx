@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Empty } from './components/states'
 import { RecordingProvider } from './context/RecordingContext'
+import ErrorsLab from './pages/ErrorsLab'
 import OverviewLayout from './layouts/OverviewLayout'
 import WorkspaceLayout from './layouts/WorkspaceLayout'
 import { NAV } from './layouts/nav'
@@ -23,6 +24,7 @@ const PAGES: Record<string, React.ReactNode> = {
   '/confidence': <Confidence />,
   '/sensitivity': <Sensitivity />,
   '/xai': <XaiStudio />,
+  '/errors': <ErrorsLab />,
 }
 
 export default function App() {
