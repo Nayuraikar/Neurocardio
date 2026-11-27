@@ -8,7 +8,7 @@ import { Empty, ErrorState, Load } from '../components/states'
 import { Card, PageHead, Table } from '../components/ui'
 import { useRecording } from '../context/RecordingContext'
 
-type HistoryRow = Analysis & { filename: string; pending_review_count: number; analysis_reviewed: boolean; needs_review: boolean }
+export type HistoryRow = Analysis & { filename: string; pending_review_count: number; analysis_reviewed: boolean; needs_review: boolean }
 const FILTERS: Record<string, (r: HistoryRow) => boolean> = {
   All: () => true, Completed: r => r.status === 'completed', Failed: r => r.status === 'failed', 'Needs review': r => r.needs_review,
 }
