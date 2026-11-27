@@ -3,12 +3,15 @@ from __future__ import annotations
 
 import ast
 import csv
+import hashlib
 import json
+from datetime import datetime
 from pathlib import Path
 
 from app.core.config import BACKEND_DIR, SPLITS_DIR
 
-STUDY_FILES = {"selection": "selection.json", "validation": "validation_report.json", "final": "final_report.json"}
+STUDY_FILES = {"selection": "analysis/multidb/selection.json", "validation": "analysis/multidb/validation_report.json",
+               "final": "analysis/multidb_final/final_report.json"}
 NOT_RUN = {"selection": "Threshold selection not run yet.", "validation": "Study validation not run yet.",
            "final": "Final evaluation not run yet."}
 STACK = "stacked_ensemble"
@@ -84,24 +87,42 @@ def study_models() -> list[str]:
 
 def study_artifact(artifacts_dir: Path, kind: str) -> dict:
     """-> {available, message, data, path}. Smoke-run outputs are refused: they are not results."""
-    name = STUDY_FILES[kind]
-    for path in (artifacts_dir / "multidb" / name, artifacts_dir / name):
-        data, problem = read_json(path)
-        if problem:
-            return {"available": False, "message": problem, "data": None, "error": True}
-        if data is not None:
-            if data.get("smoke") is not False:
-                return {"available": False, "data": None, "error": True,
-                        "message": f"{name} is marked as a smoke run (or not marked as a real run), so it is not shown."}
-            return {"available": True, "message": None, "data": data, "error": False,
-                    "path": path.relative_to(artifacts_dir).as_posix()}
-    return {"available": False, "message": NOT_RUN[kind], "data": None, "error": False}
+    relative = STUDY_FILES[kind]
+    name = Path(relative).name
+    data, problem = read_json(artifacts_dir / relative)
+    if problem:
+        return {"available": False, "message": problem, "data": None, "error": True}
+    if data is None:
+        return {"available": False, "message": NOT_RUN[kind], "data": None, "error": False}
+    if data.get("smoke") is not False:
+        return {"available": False, "data": None, "error": True,
+                "message": f"{name} is marked as a smoke run (or not marked as a real run), so it is not shown."}
+    return {"available": True, "message": None, "data": data, "error": False, "path": relative}
+
+
+def provenance(artifacts_dir: Path, loaded: dict) -> dict | None:
+    """What can be checked from the files about the primary model being frozen before the test was opened.
+    Timestamps are the ones the study scripts wrote into the files; they are not independent proof."""
+    if not all(loaded[k]["available"] for k in STUDY_FILES):
+        return None
+    selection, validation, final = (loaded[k]["data"] for k in STUDY_FILES)
+    try:
+        return {
+            "primary_matches": selection["primary"] == validation["primary"] == final["primary"],
+            "selection_hash_matches": hashlib.sha256((artifacts_dir / STUDY_FILES["selection"]).read_bytes()).hexdigest()
+            == final["selection_sha256"],
+            "selection_dated_before_test": datetime.fromisoformat(selection["created_at"])
+            < datetime.fromisoformat(final["opened_at"]),
+        }
+    except (KeyError, TypeError, ValueError):
+        return {"primary_matches": False, "selection_hash_matches": False, "selection_dated_before_test": False}
 
 
 def study(artifacts_dir: Path) -> dict:
     data_report, problem = read_json(artifacts_dir / "multidb_data_report.json")
+    loaded = {kind: study_artifact(artifacts_dir, kind) for kind in STUDY_FILES}
     return {"models": study_models(), "data_report": data_report, "data_report_problem": problem,
-            **{kind: study_artifact(artifacts_dir, kind) for kind in STUDY_FILES}}
+            "provenance": provenance(artifacts_dir, loaded), **loaded}
 
 
 def _point(summary: dict) -> dict:

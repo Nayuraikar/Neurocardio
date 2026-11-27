@@ -5,6 +5,7 @@ import { useApi } from '../api/useApi'
 import { Num } from '../components/Num'
 import { Empty, ErrorState, Load } from '../components/states'
 import { Card, ClassBadge, PageHead, Table } from '../components/ui'
+import { CLASS_CODES } from '../theme/theme'
 import { WaveLink } from '../components/WaveLink'
 import { WithWindow } from '../components/WithWindow'
 
@@ -24,7 +25,7 @@ function Slider({ data }: { data: Points }) {
   const point = points[Math.min(position, points.length - 1)]
   const src = `operating-points#models.${model}.points.${entry.points.indexOf(point)}.validation`
   return <>
-    <label className="field">Study model<select value={model} onChange={e => { setModel(e.target.value); setPosition(0) }}>{Object.keys(data.models).map(m => <option key={m} value={m}>{MODEL_LABELS[m] ?? m}{m === data.primary ? ' (primary)' : ''}</option>)}</select></label>
+    <label className="field">Study model<select value={model} onChange={e => { setModel(e.target.value); setPosition(0) }}>{Object.keys(data.models).map(m => <option key={m} value={m}>{MODEL_LABELS[m] ?? m}{m === data.primary ? ' (PRIMARY, frozen on validation)' : ' (SECONDARY)'}</option>)}</select></label>
     {points.length < 2
       ? <p>Selection kept plain argmax for this model, so there is only one frozen operating point.</p>
       : <label className="field" style={{ marginTop: 12 }}>
@@ -32,7 +33,11 @@ function Slider({ data }: { data: Points }) {
         <input type="range" min={0} max={points.length - 1} step={1} value={position} onChange={e => setPosition(Number(e.target.value))} aria-valuetext={NAMES[point.key]} />
       </label>}
     <p><strong>{NAMES[point.key]}</strong></p>
-    {point.thresholds && <p className="small muted">Per-class probability multipliers (N, S, V, F) by seed: {Object.entries(point.thresholds).map(([s, t]) => <span key={s} className="num">{s}: [{t.map(v => v.toFixed(2)).join(', ')}] </span>)}</p>}
+    {point.thresholds && <Table caption="Per-class probability multipliers, by training seed" head={['Seed', ...CLASS_CODES]}
+      rows={Object.entries(point.thresholds).map(([seed, t]) => {
+        const at = `operating-points#models.${model}.points.${entry.points.indexOf(point)}.thresholds`
+        return [<Num key="s" v={seed} fmt="raw" src={`seedkey:${at}.${seed}`} />, ...t.map((v, i) => <Num key={i} v={v} fmt="f2" src={`${at}.${seed}.${i}`} />)]
+      })} />}
     {point.validation && data.majority
       ? <Table caption="Validation data (optimistic: these thresholds and early stopping used validation data)" head={['Macro-F1', 'S recall', 'F recall', 'S precision', 'F precision', 'Accuracy', 'Majority-class accuracy', 'Majority-class macro-F1']}
         rows={[[...['macro_f1', 'S_recall', 'F_recall', 'S_precision', 'F_precision', 'accuracy'].map(k => <Num key={k} v={point.validation![k]} fmt="f3" src={`${src}.${k}`} />),
@@ -61,10 +66,10 @@ export default function Sensitivity() {
   const q = useApi<Points>('/study/operating-points')
   return <>
     <PageHead title="Sensitivity & Review Queue" sub="Decision rules frozen on validation data, and which windows to look at first." />
-    <Card title="Sensitivity (study models)"><Load q={q}>{d => d.available
+    <Card title="Sensitivity (study models)" className="sensitivity-study"><Load q={q}>{d => d.available
       ? <><p className="muted">These rules belong to the study models trained for the multi-database study. They are <strong>not applied</strong> to your recording, which was classified by the app’s own model with plain argmax.</p><Slider data={d} /></>
       : d.error ? <ErrorState error={{ status: null, message: d.message ?? '' }} onRetry={q.reload} />
-        : <><Empty title={d.message ?? 'Threshold selection not run yet.'}>The slider appears once <code>selection.json</code> is in <code>backend/artifacts/</code>.</Empty>
+        : <><Empty title={d.message ?? 'Threshold selection not run yet.'}>The slider appears once <code>selection.json</code> is in <code>backend/artifacts/analysis/multidb/</code>.</Empty>
           <label className="field" style={{ marginTop: 12 }}><span className="row between"><span>Lower S+F recall</span><span>Higher S+F recall</span></span><input type="range" min={0} max={1} value={0} disabled readOnly aria-label="Sensitivity (unavailable)" /></label></>}</Load></Card>
     <WithWindow>{({ analysis, beats }) => <Queue analysis={analysis} beats={beats} />}</WithWindow>
   </>

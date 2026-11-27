@@ -8,6 +8,9 @@ import { CurveChart } from '../components/CurveChart'
 import { HeadlineMetrics } from '../components/HeadlineMetrics'
 import { Num } from '../components/Num'
 import { SplitPanel } from '../components/SplitPanel'
+import { LiveModelNotice } from '../components/study/LiveModelNotice'
+import { StudySection } from '../components/study/StudySection'
+import type { Study } from '../api/study'
 import { Empty, Load, PartialNotice } from '../components/states'
 import { Card, ClassBadge, KeyValues, PageHead, Table } from '../components/ui'
 import { WeaknessNote } from '../components/WeaknessNote'
@@ -59,7 +62,7 @@ function Body({ m }: { m: ModelMetrics }) {
   const op = d.review_flag_policy.operating_points[d.review_flag_policy.app_uses]
   return <>
     {m.stale.map(s => <PartialNotice key={s}>These metrics may be out of date: {s}.</PartialNotice>)}
-    <Card title="Held-out test (MIT-BIH, window level)" aside={<span className="muted"><Num v={d.test.n_windows} src="metrics#test.n_windows" /> windows</span>}>
+    <Card title="Deployed model: held-out test (MIT-BIH, window level)" aside={<span className="muted"><Num v={d.test.n_windows} src="metrics#test.n_windows" /> windows</span>}>
       {headline('test', d.test)}
       <p className="small muted">95% confidence intervals from a bootstrap over {d.test_bootstrap.unit}s (<Num v={d.test_bootstrap.resamples} src="metrics#test_bootstrap.resamples" /> resamples). Windows within a record are not independent.</p>
       <Table
@@ -77,7 +80,7 @@ function Body({ m }: { m: ModelMetrics }) {
       ]} /><p className="notice">The rule was chosen on validation data for a lower error rate than it reached here.</p></Card>
     </div>
     <Card title="ROC and precision-recall"><Curves s={d.test} /></Card>
-    <Card title="Validation (used for model selection; not a final result)">{headline('validation', d.validation)}<PerClass split="validation" s={d.validation} /></Card>
+    <Card title="Deployed model: validation (used for model selection; not a final result)">{headline('validation', d.validation)}<PerClass split="validation" s={d.validation} /></Card>
     <History m={m} />
     <SplitPanel m={m} />
     <Card title="Model" aside={<Link to="/model-card">Model card</Link>}>
@@ -94,9 +97,14 @@ function Body({ m }: { m: ModelMetrics }) {
 
 export default function Performance() {
   const q = useApi<ModelMetrics>('/model/metrics')
-  return <><PageHead title="Model Performance" sub="The model this app runs. Window-level results on retrospective MIT-BIH data." />
+  const study = useApi<Study>('/study')
+  return <><PageHead title="Model Performance" sub="First the model this app runs, then the separate multi-database study. Window-level results on retrospective data." />
+    <LiveModelNotice study={study.data} />
     <WeaknessNote link={false} />
-    <Load q={q} lines={10}>{m => m.available ? <Body m={m} /> : <Empty title={m.message ?? 'Not available'}>{m.problem}</Empty>}</Load></>
+    <h2>The app’s model: deployed CNN-BiLSTM</h2>
+    <Load q={q} lines={10}>{m => m.available ? <Body m={m} /> : <Empty title={m.message ?? 'Not available'}>{m.problem}</Empty>}</Load>
+    <h2>Multi-database study (not run by this app)</h2>
+    <StudySection q={study} /></>
 }
 
 export function MetricDetail() {

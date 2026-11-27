@@ -128,15 +128,41 @@ def test_study_empty_smoke_broken_and_present(tmp_path):
         assert empty["final"] == {"available": False, "message": "Final evaluation not run yet.", "data": None, "error": False}
         assert {"cnn_bilstm", "rr_fusion_attn_shead", "cnn", "lstm", "resnet1d", "gbm", "stacked_ensemble"} <= set(empty["models"])
         assert c.get("/api/study/operating-points").json()["available"] is False
-        (tmp_path / "selection.json").write_text(json.dumps(F.selection(smoke=True)))
+        folder = tmp_path / "analysis" / "multidb"
+        folder.mkdir(parents=True)
+        (folder / "selection.json").write_text(json.dumps(F.selection(smoke=True)))
         assert "smoke" in c.get("/api/study").json()["selection"]["message"]
-        (tmp_path / "selection.json").write_text("not json")
+        (folder / "selection.json").write_text("not json")
         assert c.get("/api/study").json()["selection"]["error"] is True
-        (tmp_path / "selection.json").write_text(json.dumps(F.selection()))
-        (tmp_path / "validation_report.json").write_text(json.dumps(F.validation()))
+        (folder / "selection.json").write_text(json.dumps(F.selection()))
+        (folder / "validation_report.json").write_text(json.dumps(F.validation()))
         points = c.get("/api/study/operating-points").json()
         assert [p["key"] for p in points["models"]["rr_fusion"]["points"]] == ["argmax", "thresholds"]
         assert points["models"]["rr_fusion"]["points"][1]["validation"]["macro_f1"] == 0.6
+
+
+def test_committed_study_artifacts_load_with_checked_provenance(client):
+    """The real committed reports, through the API: gbm is primary, was frozen before the test, and every test
+    set carries the deployed model and the majority class."""
+    study = client.get("/api/study").json()
+    assert all(study[k]["available"] for k in ("selection", "validation", "final"))
+    assert study["provenance"] == {"primary_matches": True, "selection_hash_matches": True, "selection_dated_before_test": True}
+    final = study["final"]["data"]
+    assert final["primary"] == "gbm" and len(final["scored"]) == 9
+    assert list(final["sets"]) == ["ds2_22_records", "ds2_without_202", "incart_heldout"]
+    assert [final["sets"][s]["gbm"]["n_patients"] for s in final["sets"]] == [22, 21, 10]
+    for entry in final["sets"].values():
+        assert {"deployed_model", "majority_class", *final["scored"]} <= set(entry)
+    points = client.get("/api/study/operating-points").json()
+    assert points["primary"] == "gbm" and [p["key"] for p in points["models"]["gbm"]["points"]] == ["argmax"]
+
+
+def test_deployed_model_in_final_report_matches_the_app_metrics(client):
+    final = client.get("/api/study").json()["final"]["data"]
+    app_test = client.get("/api/model/metrics").json()["metrics"]["test"]
+    study_row = final["sets"]["ds2_without_202"]["deployed_model"]
+    assert study_row["n_beats"] == app_test["n_windows"]
+    assert study_row["macro_f1"]["mean"] == pytest.approx(app_test["macro"]["f1"], abs=1e-9)
 
 
 def test_explanations_reference_and_comparison(client, analysed):
