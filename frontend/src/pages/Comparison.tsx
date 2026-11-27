@@ -1,5 +1,7 @@
 import { MODEL_LABELS, RR_MODELS, type Study } from '../api/study'
 import { useApi } from '../api/useApi'
+import { Findings } from '../components/study/Findings'
+import { LiveModelNotice } from '../components/study/LiveModelNotice'
 import { primaryOf } from '../components/study/names'
 import { Role } from '../components/study/Role'
 import { TestPanel } from '../components/study/TestPanel'
@@ -12,6 +14,8 @@ export default function Comparison() {
   return <><PageHead title="Model Comparison Lab" sub="Study models trained on three databases. Lead with macro-F1 and S/F recall; validation and test are separate." />
     <PartialNotice>S and F are the hard classes in this problem. Compare their recall and precision before reading any accuracy.</PartialNotice>
     <Load q={q} lines={8}>{s => <>
+      <LiveModelNotice study={s} />
+      {s.final.available && <Card title="What the final test showed"><Findings study={s} /></Card>}
       <Card title="Validation"><ValidationPanel study={s} /></Card>
       <Card title="Test"><TestPanel study={s} /></Card>
       <Card title="What is compared"><Table head={['Model', 'Role', 'ID', 'Inputs']} rows={s.models.map(m => [MODEL_LABELS[m] ?? m,
