@@ -27,6 +27,16 @@ router = APIRouter()
 XAI_LOCK = threading.Lock()
 
 
+def get_explainer(request: Request) -> ModelExplainer:
+    """One explainer per app, so the compiled gradient step is traced once. Call while holding XAI_LOCK."""
+    if request.app.state.classifier is None:
+        raise HTTPException(503, "the model is not loaded")
+    explainer = getattr(request.app.state, "explainer", None)
+    if explainer is None:
+        explainer = request.app.state.explainer = ModelExplainer(request.app.state.classifier.model, ig_steps=512, ig_batch_size=32)
+    return explainer
+
+
 @router.get("/health")
 def health(request: Request):
     classifier = request.app.state.classifier
@@ -172,10 +182,7 @@ def explanation(analysis_id: str, request: Request, beat: str, target_class: str
     if not len(batch.windows):
         raise HTTPException(422, "beat window crosses a recording edge")
     with XAI_LOCK:
-        explainer = getattr(request.app.state, "explainer", None)
-        if explainer is None:  # kept so the compiled gradient step is traced once
-            explainer = request.app.state.explainer = ModelExplainer(request.app.state.classifier.model, ig_steps=512,
-                                                                     ig_batch_size=32)
+        explainer = get_explainer(request)
     class_index = ["N", "S", "V", "F"].index(target_class)
     if method == "gradcam":
         attrs, grad_norm = explainer.gradcam_with_diagnostics(batch.windows, class_index)

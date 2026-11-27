@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.routes import router
+from app.api.dataset import router as dataset_router
+from app.api.demo import router as demo_router
 from app.api.recordings import router as recordings_router
 from app.api.system import router as system_router
 from app.services.overview_service import fail_interrupted_analyses
@@ -62,6 +64,8 @@ def create_app(*, database_url: str = DATABASE_URL, data_dir: Path = DATA_DIR,
     app.include_router(router, prefix="/api")
     app.include_router(system_router, prefix="/api")
     app.include_router(recordings_router, prefix="/api")
+    app.include_router(dataset_router, prefix="/api")
+    app.include_router(demo_router, prefix="/api")
     app.include_router(router, prefix="/api/v1", include_in_schema=False)
 
     @app.exception_handler(ServiceError)

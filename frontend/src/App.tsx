@@ -1,11 +1,14 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Empty } from './components/states'
 import { RecordingProvider } from './context/RecordingContext'
+import Dataset from './pages/Dataset'
+import Demo from './pages/Demo'
 import ErrorsLab from './pages/ErrorsLab'
 import OverviewLayout from './layouts/OverviewLayout'
 import WorkspaceLayout from './layouts/WorkspaceLayout'
 import { NAV } from './layouts/nav'
 import AnalysisStudio from './pages/AnalysisStudio'
+import Challenge from './pages/Challenge'
 import Comparison from './pages/Comparison'
 import Confidence from './pages/Confidence'
 import ModelCard from './pages/ModelCard'
@@ -31,6 +34,9 @@ const PAGES: Record<string, React.ReactNode> = {
   '/performance': <Performance />,
   '/comparison': <Comparison />,
   '/model-card': <ModelCard />,
+  '/dataset': <Dataset />,
+  '/demo': <Demo />,
+  '/challenge': <Challenge />,
 }
 
 export default function App() {

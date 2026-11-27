@@ -154,3 +154,51 @@ def test_explanations_reference_and_comparison(client, analysed):
     ref = client.get(f"/api/analyses/{aid}/reference").json()
     assert ref["available"] and len(ref["labels"]) == analysis["beat_count"]
     assert client.get("/api/model/xai-evaluation").json()["available"] is True
+
+
+def test_demo_samples_come_only_from_training_and_validation(client):
+    import json
+    from app.core.config import CONFIG_PATH, SPLITS_DIR, ARTIFACTS_DIR
+    app_split = json.loads(CONFIG_PATH.read_text())["split"]
+    study = json.loads((SPLITS_DIR / "multidb_v1.json").read_text())
+    test_keys = set(study["test_ds2"]) | set(study["test_incart"]) | {f"mitdb/{r}" for r in app_split["test_records"]}
+    test_patients = {study["patients"].get(k, k) for k in test_keys}
+    listed = client.get("/api/demo/samples").json()["samples"]
+    assert listed and (ARTIFACTS_DIR / "demo_samples.json").stat().st_size < 2 * 1024 * 1024
+    for s in listed:
+        key = f"mitdb/{s['record']}"
+        assert s["database"] == "mitdb" and key not in test_keys and study["patients"].get(key, key) not in test_patients
+        assert s["record"] in app_split[f"{s['app_model_split']}_records"] and s["app_model_split"] in ("train", "validation")
+        assert s["study_split"] in ("train", "validation") and key in study[s["study_split"]]
+    assert not {"201", "202"} & {s["record"] for s in listed}
+    items = client.get("/api/demo/challenge?seed=3").json()["items"]
+    assert len(items) == 8 and all("label" not in i for i in items)
+    hidden = client.get(f"/api/demo/samples/{items[0]['id']}?reveal=false").json()
+    assert "label" not in hidden and hidden["prediction"] is None
+    shown = client.get(f"/api/demo/samples/{items[0]['id']}").json()
+    assert shown["label"] in "NSVF" and shown["prediction"]["predicted_class"] in "NSVF"
+
+
+def test_demo_file_with_a_test_patient_is_refused(tmp_path):
+    import json
+    from app.core.config import ARTIFACTS_DIR
+    data = json.loads((ARTIFACTS_DIR / "demo_samples.json").read_text())
+    data["samples"][0]["record"] = "232"  # a DS2 record
+    (tmp_path / "demo_samples.json").write_text(json.dumps(data))
+    app = create_app(database_url=f"sqlite:///{tmp_path / 'd.sqlite3'}", data_dir=tmp_path, artifacts_dir=tmp_path,
+                     initialize_model=False)
+    with TestClient(app) as c:
+        response = c.get("/api/demo/samples")
+        assert response.status_code == 503 and "refused" in response.json()["detail"]
+
+
+def test_dataset_endpoints(client):
+    summary = client.get("/api/dataset/summary").json()
+    assert summary["app_model"]["dataset"]["records_total"] == 48 and summary["study"]["splits"]
+    records = client.get("/api/dataset/records").json()
+    assert len(records) == 48
+    examples = client.get("/api/dataset/representatives").json()["examples"]
+    from app.services.dataset_service import record_split
+    assert [e["label"] for e in examples] == list("NSVF") and all(record_split(e["record"]) == "train" for e in examples)
+    assert len(client.get("/api/dataset/records/208/window?class=F&index=2").json()["model_input"]) == 720
+    assert client.get("/api/dataset/records/..%2F208/segment").status_code == 404
