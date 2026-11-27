@@ -34,3 +34,37 @@ results/__results___files/
 .idea/
 .vscode/
 backend.log
+
+# Training run outputs (large); the registry backend/artifacts/experiments.json is tracked
+backend/experiments/
+backend/artifacts/*.lock
+backend/artifacts/*.log
+backend/artifacts/*.tmp
+backend/artifacts/xai_eval_partial*.json
+
+# Kaggle upload artifacts (rebuild with backend/scripts/build_kaggle_package.py)
+kaggle/data/
+kaggle/*.zip
+kaggle/data/*.npz
+*.npz
+backend/.venv/
+
+# Data, models and study outputs must not be committed. Exceptions: the XAI examples and the deployed model.
+# (The other demo data is WFDB and JSON: sample_data/ and backend/artifacts/demo_samples.json.)
+!docs/xai-examples/*.npz
+*SEALED*
+predictions_*
+*.npy
+*.joblib
+*.pkl
+*.h5
+*.keras
+!backend/models/neurocardio_final.keras
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.db-journal
+*.db-wal
+*.db-shm
+/data/
+.venv*/

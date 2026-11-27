@@ -1,13 +1,12 @@
 # Local API
 
-Base path: `/api/v1`. The service listens on `127.0.0.1:8000` by default. FastAPI's generated schema is available at `/docs` while the local API runs. JSON error bodies use `detail`; uploads and rate/lead issues use 4xx responses.
+Base path: `/api`. The earlier routes also remain under `/api/v1` (`/model-info` was removed). The service listens on `127.0.0.1:8000` by default. FastAPI's generated schema is available at `/docs` while the local API runs. JSON error bodies use `detail`; uploads and rate/lead issues use 4xx responses.
 
 ## Endpoints
 
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/health` | API and model-load status |
-| GET | `/model-info` | Selected model signature and metrics read from `results/` |
 | POST | `/ecg/upload` | Multipart CSV or WFDB upload; returns metadata and downsampled signal preview |
 | GET | `/ecg/records` | Locally stored recordings |
 | POST | `/analyses?record_id=…` | Run a retrospective analysis synchronously |
@@ -21,6 +20,16 @@ Base path: `/api/v1`. The service listens on `127.0.0.1:8000` by default. FastAP
 | POST | `/reviews` | Save a separate human label and note |
 | GET | `/reports/{analysis_id}?format=pdf` | Generate/download a PDF |
 | GET | `/reports/{analysis_id}?format=csv` | Generate/download beat-level CSV |
+| GET | `/reports/{analysis_id}?sections=a,b&inline=true` | Choose sections: recording, preprocessing, waveform, distribution, predictions, xai, notes, performance, limitations |
+| GET | `/status`, `/overview`, `/history` | System status, stored counts and activity, all analyses with review state |
+| POST | `/upload`, `/analyze?record_id=…` | Upload; start a background analysis (poll `/analyses/{id}`, `summary.stage`) |
+| GET | `/recordings`, `/recordings/{id}` (+ `/signal`, `/envelope`, `/window`, `/quality`, `/predictions`, `/explanations`) | Recording-centred reads |
+| GET | `/analyses/{id}/reference`, `/analyses/{id}/explanations/compare` | Reference labels from the uploaded annotation; Grad-CAM/IG rank agreement |
+| GET, POST | `/analyses/{id}/sign-offs` | Append-only analysis-level review state |
+| GET | `/model/config`, `/model/metrics`, `/model/xai-evaluation` | Loaded model facts and evaluation artifacts |
+| GET | `/study`, `/study/operating-points` | Multi-database study artifacts; smoke runs are refused |
+| GET | `/dataset/summary`, `/dataset/records`, `/dataset/representatives`, `/dataset/records/{r}/segment`, `/dataset/records/{r}/window` | Dataset Explorer |
+| GET | `/demo/samples`, `/demo/samples/{id}`, `/demo/samples/{id}/gradcam`, `/demo/challenge` | Labelled training/validation windows only |
 
 ## Upload fields
 
@@ -30,7 +39,7 @@ For CSV, submit `files` (one CSV), `sampling_rate` and `lead` (the selected colu
 
 An included annotation file is used as the peak source when it contains AAMI-mapped beat annotations and passes the XQRS alignment check; this is recorded as `wfdb_annotation`. Otherwise the service uses WFDB XQRS. Analysis is retrospective. Edge windows are skipped and counted. The JSON summary reports class counts, S+V+F beat count, review flags, peak source and uncertainty-policy provenance. It intentionally does not assign a recording-level rhythm diagnosis. Beat API indices remain zero-based; the UI displays one-based beat numbers.
 
-Analysis currently runs synchronously; `progress` is persisted, but the endpoint does not provide a background job queue. A failure is persisted with `status: failed` and an error message. The local UI must render this state as failure. Beat indices in API responses remain zero-based. The frontend displays `beat_index + 1`; its explanation request passes the selected beat's API identifier and does not submit the display number.
+`POST /analyses` runs synchronously; `POST /analyze` runs in a background thread, one job at a time, and stores the current stage. There is no persistent job queue: a job interrupted by a restart is marked failed. WFDB uploads whose annotation file contains paced-beat symbols are rejected. A non-MLII lead or a missing annotation file produces an `input_warnings` entry. Beat indices in API responses remain zero-based. The frontend displays `beat_index + 1`; its explanation request passes the selected beat's API identifier and does not submit the display number.
 
 ## API workflow
 

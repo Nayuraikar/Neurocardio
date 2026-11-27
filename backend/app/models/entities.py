@@ -52,6 +52,7 @@ class Analysis(Base):
     record: Mapped[ECGRecord] = relationship(back_populates="analyses")
     beats: Mapped[list["Beat"]] = relationship(back_populates="analysis", cascade="all, delete-orphan")
     reports: Mapped[list["Report"]] = relationship(back_populates="analysis", cascade="all, delete-orphan")
+    sign_offs: Mapped[list["AnalysisReview"]] = relationship(back_populates="analysis", cascade="all, delete-orphan")
 
 
 class Beat(Base):
@@ -114,3 +115,15 @@ class Report(Base):
     path: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     analysis: Mapped[Analysis] = relationship(back_populates="reports")
+
+
+class AnalysisReview(Base):
+    """A reviewer's analysis-level sign-off. Append-only; predictions are never modified."""
+    __tablename__ = "analysis_reviews"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    analysis_id: Mapped[str] = mapped_column(ForeignKey("analyses.id", ondelete="CASCADE"), index=True)
+    status: Mapped[str] = mapped_column(String(24), default="reviewed")  # reviewed | reopened
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewer: Mapped[str] = mapped_column(String(128), default="local-reviewer")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    analysis: Mapped[Analysis] = relationship(back_populates="sign_offs")

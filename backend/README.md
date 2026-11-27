@@ -27,7 +27,7 @@ for m in (tensorflow, keras, numpy, scipy, pandas, wfdb, neurokit2):
 PY
 ```
 
-The checked-in artifact metadata records Keras 3.13.2. The source notebook
+The checked-in model's metadata records Keras 3.13.2; `requirements.txt` pins Keras 3.15.1, which the tests load it with. The source notebook
 runtime printed TensorFlow 2.20.0. This local environment must still pass the
 model-loading test before being considered verified.
 

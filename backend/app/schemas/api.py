@@ -13,6 +13,11 @@ class RecordOut(BaseModel):
     duration_seconds: float
     sample_count: int
     uploaded_at: datetime
+    units: str | None = None
+    signals: list[str] | None = None
+    has_annotation: bool = False
+    input_warnings: list[str] = Field(default_factory=list)
+    model_split_by_name: str | None = None
     preview: list[dict[str, Any]] = Field(default_factory=list)
 
 
@@ -68,3 +73,9 @@ class ReviewOut(BaseModel):
     reviewer: str
     status: str
     created_at: datetime
+
+
+class SignOffIn(BaseModel):
+    status: str = Field(default="reviewed", pattern="^(reviewed|reopened)$")
+    note: str | None = Field(default=None, max_length=4000)
+    reviewer: str = Field(default="local-reviewer", max_length=128)

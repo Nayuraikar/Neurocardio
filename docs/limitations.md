@@ -8,6 +8,8 @@
 - Beat classification does not provide a recording-level rhythm diagnosis. Beat detection errors can change which windows reach the classifier; detector metrics and classifier metrics must remain separate.
 - Annotation peaks are available only for permitted WFDB records with annotation files. Other recordings use XQRS.
 - Grad-CAM and Integrated Gradients are input- and baseline-dependent model attributions, not clinically validated explanations.
-- The backend runs analyses synchronously and has no background job queue or authentication. It is intended for a trusted local session.
-- The app depends on local model and `results/` artifacts remaining available at their configured paths.
-- User-interface browser automation and screenshots remain pending because Playwright/browser tooling is not installed in the local environment.
+- Background analyses run in one local thread with no persistent queue, and there is no authentication. It is intended for a trusted local session.
+- The app depends on the local model, `backend/artifacts/` and `results/` files remaining available at their configured paths.
+- The signal-quality Good/Moderate/Poor cut-offs are descriptive rules that have not been validated.
+- Paced rhythm cannot be detected when a recording has no annotation file.
+- Screenshots in `docs/screenshots/` predate the rebuilt interface.

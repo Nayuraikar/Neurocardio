@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def reference_arrays():
+    if not (ROOT / "results/test_examples_for_xai.npz").exists():
+        pytest.skip("results/test_examples_for_xai.npz not in repo (too large for GitHub)")
     with np.load(ROOT / "results/test_examples_for_xai.npz", allow_pickle=False) as z:
         return z["X"], z["prob"], z["pred"], z["record"], z["position"]
 

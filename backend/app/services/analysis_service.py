@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import (ANNOTATION_ALIGNMENT_MIN, ANNOTATION_ALIGNMENT_TOLERANCE_MS,
-                             CONFIG_PATH, PREPROCESSING_VERSION, RESULTS_DIR)
+                             CONFIG_PATH, PREPROCESSING_VERSION, PROJECT_DIR, RESULTS_DIR)
 from app.core.errors import ServiceError
 from app.ml.inference import sha256_file
 from app.ml.preprocessing import filter_continuous, extract_windows
@@ -24,20 +24,36 @@ def _softmax(logits: np.ndarray) -> np.ndarray:
     return exp / exp.sum()
 
 
+def create_analysis(session: Session, record: ECGRecord, classifier) -> Analysis:
+    cfg = json.loads(CONFIG_PATH.read_text())
+    analysis = Analysis(record_id=record.id, model_version=cfg["selected_model"], model_sha256=classifier.sha256,
+                        config_sha256=sha256_file(CONFIG_PATH), preprocessing_version=PREPROCESSING_VERSION,
+                        status="running", progress=1, summary_json={"stage": "validation"})
+    session.add(analysis)
+    session.commit()
+    return analysis
+
+
 def run_analysis(session: Session, record: ECGRecord, classifier) -> Analysis:
+    return execute_analysis(session, create_analysis(session, record, classifier), record, classifier)
+
+
+def _stage(session: Session, analysis: Analysis, stage: str, progress: int) -> None:
+    """Stored before the step runs, so a poll (or a failure) names the step in progress."""
+    analysis.summary_json = {"stage": stage}
+    analysis.progress = progress
+    session.commit()
+
+
+def execute_analysis(session: Session, analysis: Analysis, record: ECGRecord, classifier) -> Analysis:
     cfg = json.loads(CONFIG_PATH.read_text())
     policy_path = RESULTS_DIR / "selective_thresholds.json"
     policy = json.loads(policy_path.read_text()) if policy_path.exists() else None
-    analysis = Analysis(record_id=record.id, model_version=cfg["selected_model"], model_sha256=classifier.sha256,
-                        config_sha256=sha256_file(CONFIG_PATH), preprocessing_version=PREPROCESSING_VERSION,
-                        status="running", progress=1, summary_json={})
-    session.add(analysis)
-    session.commit()
     try:
         signal = np.asarray(np.load(record.signal_path), dtype=np.float32)
+        _stage(session, analysis, "filter", 15)
         filtered = filter_continuous(signal, record.sampling_rate)
-        analysis.progress = 20
-        session.commit()
+        _stage(session, analysis, "segmentation", 30)
         peak_source = "wfdb_xqrs"
         peaks: np.ndarray
         detector_peaks = detect_r_peaks(filtered, record.sampling_rate)
@@ -67,13 +83,13 @@ def run_analysis(session: Session, record: ECGRecord, classifier) -> Analysis:
             peaks = detector_peaks
         if len(peaks) == 0:
             raise ServiceError(422, "no R peaks detected; analysis produced no predictions")
-        batch = extract_windows(filtered, peaks)
-        analysis.progress = 55
+        batch = extract_windows(filtered, peaks)  # segmentation and per-window standardization run together
         analysis.peak_source = peak_source
         analysis.skipped_edge_count = int(len(batch.rejected_sample_indices))
         session.commit()
         if not len(batch.windows):
             raise ServiceError(422, "no complete 720-sample beat windows remain after edge rejection")
+        _stage(session, analysis, "inference", 60)
         rows = classifier.predict(batch.windows, batch.sample_indices, batch_size=256)
         if len(rows) != len(batch.windows):
             raise RuntimeError("model returned a different number of predictions than valid windows")
@@ -104,9 +120,9 @@ def run_analysis(session: Session, record: ECGRecord, classifier) -> Analysis:
             beat_rows.append(beat)
         session.add_all(beat_rows)
         analysis.beat_count = len(beat_rows)
-        analysis.progress = 90
         abnormal = class_counts.get("S", 0) + class_counts.get("V", 0) + class_counts.get("F", 0)
         analysis.summary_json = {
+            "stage": "done",
             "class_counts": class_counts,
             "abnormal_beat_count": abnormal,
             "flagged_for_review_count": flagged,
@@ -119,7 +135,7 @@ def run_analysis(session: Session, record: ECGRecord, classifier) -> Analysis:
                           "annotation_alignment_min_fraction": ANNOTATION_ALIGNMENT_MIN,
                           "annotation_alignment_tolerance_ms": ANNOTATION_ALIGNMENT_TOLERANCE_MS},
             "uncertainty_policy": {"name": "balanced" if policy else "configurable-default",
-                                   "provenance": str(policy_path) if policy else "no selective threshold artifact",
+                                   "provenance": policy_path.relative_to(PROJECT_DIR).as_posix() if policy and policy_path.is_relative_to(PROJECT_DIR) else policy_path.name if policy else "no selective threshold artifact",
                                    "temperature": temperature, "tau": tau, "margin": min_margin,
                                    "label": "exploratory, not clinically calibrated"},
         }

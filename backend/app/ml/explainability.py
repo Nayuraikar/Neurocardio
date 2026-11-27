@@ -56,6 +56,15 @@ class ModelExplainer:
             model.inputs, [model.get_layer("conv3").output, model.get_layer("logits").output]
         )
         self.logit_model = tf.keras.Model(model.inputs, model.get_layer("logits").output)
+        self._chunk_gradients = tf.function(self._eager_chunk_gradients, input_signature=[
+            tf.TensorSpec((None, 720, 1), tf.float32), tf.TensorSpec((), tf.int32)])
+
+    def _eager_chunk_gradients(self, batch, target):
+        """d logit[target] / d input for a batch of interpolated windows (compiled once per explainer)."""
+        with tf.GradientTape() as tape:
+            tape.watch(batch)
+            objective = tf.reduce_sum(self.logit_model(batch, training=False)[:, target])
+        return tape.gradient(objective, batch)
 
     @staticmethod
     def _batch(windows: np.ndarray) -> np.ndarray:
@@ -131,13 +140,7 @@ class ModelExplainer:
                 alpha_chunk = alphas[start:end]
                 interp = bi[:, None, ...] + alpha_chunk[None, :, None, None] * delta[:, None, ...]
                 flat = tf.reshape(interp, (-1, 720, 1))
-                target_t = tf.fill((end - start,), tf.cast(target, tf.int32))
-                with tf.GradientTape() as tape:
-                    tape.watch(flat)
-                    logits = self.logit_model(flat, training=False)
-                    selected = tf.gather(logits, target_t, axis=1, batch_dims=1)
-                    objective = tf.reduce_sum(selected)
-                grads = tape.gradient(objective, flat)
+                grads = self._chunk_gradients(flat, tf.constant(int(target), tf.int32))
                 if grads is None:
                     raise RuntimeError("Integrated Gradients are disconnected from the input")
                 grads = tf.reshape(grads, (end - start, 720, 1))

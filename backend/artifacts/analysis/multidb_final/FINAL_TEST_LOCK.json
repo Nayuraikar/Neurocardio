@@ -1,0 +1,19 @@
+{
+ "study": "multidb_v1",
+ "primary": "gbm",
+ "scored": [
+  "gbm",
+  "cnn_bilstm",
+  "rr_fusion",
+  "rr_fusion_attn",
+  "rr_fusion_attn_shead",
+  "cnn",
+  "lstm",
+  "resnet1d",
+  "stacked_ensemble"
+ ],
+ "smoke": false,
+ "selection_sha256": "cba3858da86082622a9370dca297470ab8f86a8371a7763b08932eec320a2d28",
+ "opened_at": "2026-11-27T05:05:55+00:00",
+ "state": "predicted"
+}

@@ -1,0 +1,14 @@
+{
+ "validation_macro_f1": 0.4858299114635066,
+ "records": [
+  "108",
+  "114",
+  "124",
+  "201",
+  "202",
+  "205",
+  "223"
+ ],
+ "model_sha256": "0e7083d56c31a4e43f6cd332b375b8480446485b60b80f52c3c7c5380508becc",
+ "source": "backend/artifacts/metrics.json, validation section (no test values)"
+}
