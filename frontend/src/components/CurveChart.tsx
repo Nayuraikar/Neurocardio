@@ -1,6 +1,6 @@
-import { useId } from 'react'
+import { useId, type ReactNode } from 'react'
 
-export type Series = { label: string; color: string; x: number[]; y: number[]; dash?: boolean }
+export type Series = { label: string; legend?: ReactNode; color: string; x: number[]; y: number[]; dash?: boolean }
 
 export function CurveChart({ series, xLabel, yLabel, title, diagonal, yMax = 1, xDomain = [0, 1] }: {
   series: Series[]; xLabel: string; yLabel: string; title: string; diagonal?: boolean; yMax?: number; xDomain?: [number, number]
@@ -21,6 +21,6 @@ export function CurveChart({ series, xLabel, yLabel, title, diagonal, yMax = 1, 
       <text x={(L + W - R) / 2} y={H - 4} textAnchor="middle">{xLabel}</text>
       <text transform={`translate(10 ${(T + H - B) / 2}) rotate(-90)`} textAnchor="middle">{yLabel}</text>
     </svg>
-    <figcaption className="legend"><strong>{title}</strong>{series.map(s => <span key={s.label}><i style={{ background: s.color }} />{s.label}</span>)}</figcaption>
+    <figcaption className="legend"><strong>{title}</strong>{series.map(s => <span key={s.label}><i style={{ background: s.color }} />{s.legend ?? s.label}</span>)}</figcaption>
   </figure>
 }

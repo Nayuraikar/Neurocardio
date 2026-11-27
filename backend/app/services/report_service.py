@@ -153,8 +153,8 @@ def _table(rows, widths=None, header=True, size=8) -> Table:
     return Table(rows, colWidths=widths, repeatRows=1 if header else 0, style=TableStyle(style))
 
 
-def _performance(styles) -> list:
-    metrics, _ = read_json(ARTIFACTS_DIR / "metrics.json")
+def _performance(styles, artifacts_dir: Path) -> list:
+    metrics, _ = read_json(artifacts_dir / "metrics.json")
     if metrics is None:
         return [Paragraph("Model evaluation figures are not available.", styles["BodyText"])]
     t = metrics["test"]
@@ -181,7 +181,8 @@ def _limitations(styles) -> list:
     return [Paragraph(f"• {escape(item)}", styles["BodyText"]) for item in items]
 
 
-def _write_pdf(path: Path, a: Analysis, beats: list[Beat], sections: list[str], generated: str) -> None:
+def _write_pdf(path: Path, a: Analysis, beats: list[Beat], sections: list[str], generated: str,
+               artifacts_dir: Path) -> None:
     styles = getSampleStyleSheet()
     styles["Heading2"].keepWithNext = 1
     doc = SimpleDocTemplate(str(path), pagesize=landscape(letter), title="NeuroCardio research report")
@@ -251,14 +252,14 @@ def _write_pdf(path: Path, a: Analysis, beats: list[Beat], sections: list[str], 
             story.append(_table(rows, [50, 40, 75, 65, 90, 370]) if len(rows) > 1
                          else Paragraph("No window has been assessed by a reviewer.", styles["BodyText"]))
         elif key == "performance":
-            story += _performance(styles)
+            story += _performance(styles, artifacts_dir)
         elif key == "limitations":
             story += _limitations(styles)
     doc.build(story)
 
 
 def generate_report(session: Session, analysis_id: str, fmt: str, report_dir: Path,
-                    sections: list[str] | None = None) -> tuple[Path, Analysis]:
+                    sections: list[str] | None = None, artifacts_dir: Path = ARTIFACTS_DIR) -> tuple[Path, Analysis]:
     analysis = _analysis(session, analysis_id)
     if analysis is None:
         raise LookupError("analysis not found")
@@ -271,7 +272,11 @@ def generate_report(session: Session, analysis_id: str, fmt: str, report_dir: Pa
     target = report_dir / f"{analysis.id}.{fmt}"
     beats = sorted(analysis.beats, key=lambda b: b.beat_index)
     now = datetime.now(timezone.utc)
-    (_write_csv if fmt == "csv" else _write_pdf)(target, analysis, beats, sections, now.isoformat(timespec="seconds"))
+    stamp = now.isoformat(timespec="seconds")
+    if fmt == "csv":
+        _write_csv(target, analysis, beats, sections, stamp)
+    else:
+        _write_pdf(target, analysis, beats, sections, stamp, artifacts_dir)
     row = session.scalar(select(Report).where(Report.analysis_id == analysis_id, Report.format == fmt))
     if row is None:
         row = Report(analysis_id=analysis_id, format=fmt, path=str(target))

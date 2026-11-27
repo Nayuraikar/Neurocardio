@@ -41,7 +41,7 @@ export default function ModelCard() {
       if (!d) return <Empty title="Study data report not generated yet.">{s.data_report_problem}</Empty>
       return <>
         <Card title="Training data of the study models, per database">
-          <Table caption="Training part, patient-wise" head={['Database', 'Lead', 'Records', 'Patients', ...CLASS_CODES]} rows={Object.entries(d.splits.train.by_database ?? {}).map(([k, v]) => [DB[k] ?? k, d.lead[k],
+          <Table caption="Training part, patient-wise" head={['Database', 'Lead', 'Records', 'Patients', ...CLASS_CODES]} rows={Object.entries(d.splits.train.by_database ?? {}).map(([k, v]) => [DB[k] ?? k, <Num key="l" v={d.lead[k]} fmt="raw" src={`datareport#lead.${k}`} />,
             <Num key="r" v={v.records} src={`datareport#splits.train.by_database.${k}.records`} />, <Num key="p" v={v.patients} src={`datareport#splits.train.by_database.${k}.patients`} />,
             ...CLASS_CODES.map(c => <Num key={c} v={v.windows[c]} src={`datareport#splits.train.by_database.${k}.windows.${c}`} />)])} />
           <Table caption="Patient-wise parts of the study split" head={['Part', 'Records', 'Patients', 'Windows']} rows={Object.entries(d.splits).map(([k, v]) => [k,

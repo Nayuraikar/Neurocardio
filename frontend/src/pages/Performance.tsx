@@ -35,7 +35,7 @@ function Curves({ s }: { s: SplitMetrics }) {
       series={CLASS_CODES.map(c => ({ label: c, color: CLASSES[c].fill, x: s.roc_curves[c].fpr, y: s.roc_curves[c].tpr }))} /></div>
     <div className="grid-4">{CLASS_CODES.map(c => <CurveChart key={c} title={`Precision-recall ${c}, test`} xLabel="Recall" yLabel="Precision"
       series={[{ label: c, color: CLASSES[c].fill, x: s.pr_curves[c].recall, y: s.pr_curves[c].precision },
-        { label: `prevalence ${(s.per_class[c].prevalence * 100).toFixed(1)}%`, color: '#888', x: [0, 1], y: [s.per_class[c].prevalence, s.per_class[c].prevalence], dash: true }]} />)}</div>
+        { label: 'prevalence', legend: <>prevalence <Num v={s.per_class[c].prevalence} fmt="pct1" src={`metrics#test.per_class.${c}.prevalence`} /></>, color: '#888', x: [0, 1], y: [s.per_class[c].prevalence, s.per_class[c].prevalence], dash: true }]} />)}</div>
   </div>
 }
 
@@ -45,11 +45,11 @@ function History({ m }: { m: ModelMetrics }) {
   return <Card title="Training history of the app’s model">
     <div className="grid-3">
       <CurveChart title="Loss" xLabel="Epoch" yLabel="Loss" xDomain={domain} yMax={lossMax} series={[{ label: 'training', color: '#2b3a1e', x, y: h.map(r => r.loss) }, { label: 'validation', color: '#1f5f8b', x, y: h.map(r => r.val_loss) }]} />
-      <CurveChart title="Accuracy" xLabel="Epoch" yLabel="Accuracy" xDomain={domain} series={[{ label: 'training', color: '#2b3a1e', x, y: h.map(r => r.accuracy) }, { label: 'validation', color: '#1f5f8b', x, y: h.map(r => r.val_accuracy) },
+      <CurveChart title="Validation accuracy" xLabel="Epoch" yLabel="Accuracy" xDomain={domain} series={[{ label: 'validation', color: '#1f5f8b', x, y: h.map(r => r.val_accuracy) },
         { label: 'validation majority-class baseline', color: '#888', dash: true, x: domain, y: [m.metrics.validation.majority_class_baseline_accuracy, m.metrics.validation.majority_class_baseline_accuracy] }]} />
       <CurveChart title="Validation macro-F1" xLabel="Epoch" yLabel="Macro-F1" xDomain={domain} series={[{ label: 'validation', color: '#1f5f8b', x, y: h.map(r => r.val_macro_f1) }]} />
     </div>
-    <p className="notice">Training data were augmented, so training and validation curves are not on the same distribution. No training macro-F1 was recorded.</p>
+    <p className="notice">Training data were augmented, so training and validation curves are not on the same distribution. No training macro-F1 was recorded, and no verified majority-class baseline exists for the augmented training data, so training accuracy is not plotted.</p>
   </Card>
 }
 
@@ -61,7 +61,8 @@ function Body({ m }: { m: ModelMetrics }) {
     {m.stale.map(s => <PartialNotice key={s}>These metrics may be out of date: {s}.</PartialNotice>)}
     <Card title="Held-out test (MIT-BIH, window level)" aside={<span className="muted"><Num v={d.test.n_windows} src="metrics#test.n_windows" /> windows</span>}>
       {headline('test', d.test)}
-      <Table caption={`95% confidence intervals from a bootstrap over ${d.test_bootstrap.unit}s (${d.test_bootstrap.resamples} resamples). Windows within a record are not independent.`}
+      <p className="small muted">95% confidence intervals from a bootstrap over {d.test_bootstrap.unit}s (<Num v={d.test_bootstrap.resamples} src="metrics#test_bootstrap.resamples" /> resamples). Windows within a record are not independent.</p>
+      <Table
         head={['Macro-F1', 'S recall', 'F recall', 'V recall']} rows={[['macro_f1', 'S_recall', 'F_recall', 'V_recall'].map(k => <span key={k}>
           <Num v={ci[k][0]} fmt="f3" src={`metrics#test_bootstrap.ci95.${k}.0`} /> to <Num v={ci[k][1]} fmt="f3" src={`metrics#test_bootstrap.ci95.${k}.1`} /></span>)]} />
     </Card>
@@ -85,7 +86,7 @@ function Body({ m }: { m: ModelMetrics }) {
         ['Normalization', <span data-source="config#normalization">{c.normalization}</span>], ['Parameters', <Num v={c.parameter_count} src="config#parameter_count" />],
         ['Version', <span data-source="config#model_version">{c.model_version}</span>], ['Decision rule', d.training.decision_rule],
         ['Loss (as recorded, unverified)', d.training.loss_as_recorded_in_config], ['Class weighting and augmentation', 'recorded in config; unverified (no training code)'],
-        ['Evaluated', new Date(d.evaluated_at_utc).toLocaleString()]]} />
+        ['Evaluated', <Num v={new Date(d.evaluated_at_utc).toLocaleString()} fmt="raw" src="datetime:metrics#evaluated_at_utc" />]]} />
         <h3>Layers of the loaded model</h3><ArchitectureDiagram config={c} /></>}</Load>
     </Card>
   </>

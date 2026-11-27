@@ -269,7 +269,8 @@ def report(analysis_id: str, request: Request, format: str = Query("pdf", patter
     except KeyError as exc:
         raise HTTPException(422, str(exc.args[0])) from exc
     try:
-        path, _ = generate_report(db, analysis_id, format, request.app.state.data_dir / "reports", chosen)
+        path, _ = generate_report(db, analysis_id, format, request.app.state.data_dir / "reports", chosen,
+                                  request.app.state.artifacts_dir)
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
     except ValueError as exc:

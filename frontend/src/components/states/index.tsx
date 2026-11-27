@@ -27,10 +27,10 @@ export function SuccessBanner({ children }: { children: ReactNode }) {
   return <div className="state state-ok" role="status" data-state="success">{children}</div>
 }
 
-export function ReviewReady({ pending, to }: { pending: number; to: string }) {
+export function ReviewReady({ pending, to, source }: { pending: number; to: string; source?: string }) {
   return <div className="state state-warn review-ready" data-state="review-ready">
     <strong>Ready for review</strong>
-    <div>{pending} flagged window{pending === 1 ? '' : 's'} waiting for a reviewer.</div>
+    <div>{source ? <span data-source={source} data-fmt="int">{pending.toLocaleString('en-US')}</span> : pending} flagged window{pending === 1 ? '' : 's'} waiting for a reviewer.</div>
     <Link className="btn" to={to}>Open review</Link>
   </div>
 }

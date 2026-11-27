@@ -23,7 +23,8 @@ function Scores({ rows, majority, source, majoritySource, models, primary }: {
       return [name, cell(m, 'macro_f1.mean', s.macro_f1.mean), cell(m, 'per_class.S.recall.mean', s.per_class.S.recall.mean), cell(m, 'per_class.F.recall.mean', s.per_class.F.recall.mean),
         cell(m, 'per_class.S.precision.mean', s.per_class.S.precision.mean), cell(m, 'per_class.F.precision.mean', s.per_class.F.precision.mean), cell(m, 'per_class.V.recall.mean', s.per_class.V.recall.mean), cell(m, 'accuracy.mean', s.accuracy.mean)]
     }),
-    [<strong key="m">Majority class (always N)</strong>, <Num key="f" v={majority.macro_f1} fmt="f3" src={`${majoritySource}.macro_f1`} />, '0', '0', '—', '—', '0',
+    [<strong key="m">Majority class (always N)</strong>, <Num key="f" v={majority.macro_f1} fmt="f3" src={`${majoritySource}.macro_f1`} />, <Num key="s" v={majority.per_class.S.recall} fmt="f3" src={`${majoritySource}.per_class.S.recall`} />, <Num key="fr" v={majority.per_class.F.recall} fmt="f3" src={`${majoritySource}.per_class.F.recall`} />, '—', '—',
+      <Num key="v" v={majority.per_class.V.recall} fmt="f3" src={`${majoritySource}.per_class.V.recall`} />,
       <Num key="a" v={majority.accuracy} fmt="f3" src={`${majoritySource}.accuracy`} />],
   ]} />
 }

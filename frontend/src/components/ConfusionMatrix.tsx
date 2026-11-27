@@ -10,10 +10,10 @@ export function ConfusionMatrix({ counts, source, onSelect }: { counts: number[]
       const total = counts[i].reduce((a, b) => a + b, 0)
       return <tr key={t}><th scope="row">{t}</th>{counts[i].map((v, j) => {
         const share = total ? v / total : 0
-        const body = <><Num v={v} src={`${source}.${i}.${j}`} /><div className="small muted">{(share * 100).toFixed(1)}%</div></>
+        const body = <><Num v={v} src={`${source}.${i}.${j}`} /><div className="small muted"><Num v={share} fmt="pct1" src={`rowshare:${source}.${i}.${j}`} /></div></>
         return <td key={j} style={{ background: `${classFill(i === j ? 'N' : 'V')}${Math.round(share * 150).toString(16).padStart(2, '0')}` }}>
           {onSelect && v > 0 ? <button type="button" onClick={() => onSelect(t, CLASS_CODES[j])} aria-label={`True ${t}, model ${CLASS_CODES[j]}: ${v} windows`}>{body}</button> : body}</td>
-      })}<td>{total.toLocaleString()}</td></tr>
+      })}<td><Num v={total} src={`sum:${source}.${i}`} /></td></tr>
     })}</tbody>
   </table></div>
 }

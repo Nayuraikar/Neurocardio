@@ -18,7 +18,7 @@ export default function OverviewPage() {
   return <>
     <section className="hero">
       <h1>Interpretable AI-powered ECG analysis</h1>
-      <p className="muted">For research use. The model classifies individual {config.data ? `${config.data.window_samples / config.data.sampling_rate_hz}-second ` : ''}windows. It does not diagnose a patient or a recording.</p>
+      <p className="muted">For research use. The model classifies individual {config.data && <><span data-source="windowseconds">{config.data.window_samples / config.data.sampling_rate_hz}</span>-second </>}windows. It does not diagnose a patient or a recording.</p>
       {config.data && <p className="small muted">Loaded model: <span data-source="config#architecture">{config.data.architecture}</span> ·
         input <span data-source="config#input_shape">{config.data.input_shape}</span> · <span data-source="config#normalization">{config.data.normalization}</span></p>}
     </section>
@@ -29,18 +29,18 @@ export default function OverviewPage() {
         <div className="stat"><b><Num v={d.review_required} src="db#review_required" /></b><span>Analyses needing review · <Num v={d.pending_review_windows} src="db#pending_review_windows" /> windows pending</span></div>
         <div className="stat"><b style={{ fontSize: 17 }} data-source="config#model_version">{d.model_version}</b><span>Model version</span></div>
       </div>
-      {d.first_review_analysis_id && <ReviewReady pending={d.pending_review_windows} to={`/history/${d.first_review_analysis_id}`} />}
+      {d.first_review_analysis_id && <ReviewReady source="db#pending_review_windows" pending={d.pending_review_windows} to={`/history/${d.first_review_analysis_id}`} />}
     </>}</Load>
     <div className="launcher">
       <Link className="launch feature" to="/studio"><h2>Analysis Studio</h2><p>Upload a recording, follow each processing step, and inspect every window the model classified.</p></Link>
       <Link className="launch" to="/dataset"><h2>Dataset Explorer</h2><p>Class counts, patient splits and real example windows.</p></Link>
       <Link className="launch" to="/performance"><h2>Model Performance</h2><p>Held-out results shown with the majority-class baseline and per-class weaknesses.</p></Link>
     </div>
-    <Card title="Recent activity">
+    <div data-testid="activity"><Card title="Recent activity">
       <Load q={q}>{d => d.activity.length
         ? <Table head={['When', 'Event', 'Recording', '']} rows={d.activity.map(e => [when(e.at), e.type, e.label,
           e.analysis_id ? <Link key="l" to={`/viewer?analysis=${e.analysis_id}&window=0`}>Open</Link> : ''])} />
         : <Empty title="Nothing recorded yet">Upload a recording in the Analysis Studio.</Empty>}</Load>
-    </Card>
+    </Card></div>
   </>
 }

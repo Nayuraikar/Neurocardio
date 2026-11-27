@@ -28,15 +28,15 @@ function Facts({ d }: { d: SummaryData }) {
       <div className="probs">{CLASS_CODES.map(c => {
         const counts = app.dataset.class_counts.train.usable_windows
         const total = CLASS_CODES.reduce((a, k) => a + counts[k], 0)
-        return <div key={c} className="prob-row"><ClassBadge code={c} /><div className="bar"><i style={{ width: `${counts[c] / total * 100}%`, background: classFill(c) }} /></div><span className="num">{(counts[c] / total * 100).toFixed(1)}%</span></div>
+        return <div key={c} className="prob-row"><ClassBadge code={c} /><div className="bar"><i style={{ width: `${counts[c] / total * 100}%`, background: classFill(c) }} /></div><span className="num"><Num v={counts[c] / total} fmt="pct1" src={`totalshare:metrics#dataset.class_counts.train.usable_windows.${c}`} /></span></div>
       })}</div>
     </Card> : <Empty title={d.app_model_problem ?? 'Not available'} />}
     <Card title="Rare classes come from few patients">
       {d.minority_concentration.length ? <Table head={['Part', 'Class', 'Annotated beats', 'Largest record', 'Its share']} rows={d.minority_concentration.map((r, i) => [r.split, r.class,
-        <Num key="t" v={Number(r.total_beats)} src={`minority#${i}.total_beats`} />, r.top_record, <Num key="s" v={Number(r.top_record_share)} fmt="pct1" src={`minority#${i}.top_record_share`} />])} /> : <Empty title="Concentration table not available." />}
+        <Num key="t" v={Number(r.total_beats)} src={`minority#${i}.total_beats`} />, <Num key="id" v={r.top_record} fmt="raw" src={`minority#${i}.top_record`} />, <Num key="s" v={Number(r.top_record_share)} fmt="pct1" src={`minority#${i}.top_record_share`} />])} /> : <Empty title="Concentration table not available." />}
     </Card>
     {d.study ? <Card title="Multi-database study data">
-      <Table caption="All usable records per database" head={['Database', 'Lead', 'Source rate (Hz)', 'Records', 'Patients', ...CLASS_CODES]} rows={Object.entries(d.study.databases).map(([k, v]) => [k, d.study!.lead[k],
+      <Table caption="All usable records per database" head={['Database', 'Lead', 'Source rate (Hz)', 'Records', 'Patients', ...CLASS_CODES]} rows={Object.entries(d.study.databases).map(([k, v]) => [k, <Num key="l" v={d.study!.lead[k]} fmt="raw" src={`datareport#lead.${k}`} />,
         <Num key="f" v={v.source_fs_hz} fmt="raw" src={`datareport#databases.${k}.source_fs_hz`} />, <Num key="r" v={v.records} src={`datareport#databases.${k}.records`} />, <Num key="p" v={v.patients} src={`datareport#databases.${k}.patients`} />,
         ...CLASS_CODES.map(c => <Num key={c} v={v.windows[c]} src={`datareport#databases.${k}.windows.${c}`} />)])} />
       <Table caption="Patient-wise study split" head={['Part', 'Records', 'Patients', ...CLASS_CODES]} rows={Object.entries(d.study.splits).map(([k, v]) => [k,
@@ -52,7 +52,7 @@ function Representatives() {
     <p className="muted">{d.rule}</p>
     <div className="grid-2">{d.examples.map(e => <div key={e.label}><ClassBadge code={e.label} long />
       <Trace values={e.model_input} fs={360} label={`Record ${e.record}, sample ${e.sample}`} unit="z-score" height={170} band={{ from: 270, to: 450, color: classFill(e.label) }} />
-      <p className="small muted">Chosen from {e.candidates.toLocaleString()} training windows.</p></div>)}</div>
+      <p className="small muted">Chosen from <Num v={e.candidates} src={`metrics#dataset.class_counts.train.usable_windows.${e.label}`} /> training windows.</p></div>)}</div>
   </>}</Load></Card>
 }
 
@@ -68,7 +68,7 @@ function Browser({ records }: { records: RecordRow[] }) {
   const segment = useApi<Segment>(`/dataset/records/${record}/segment?start=${start}&seconds=10`)
   const win = useApi<WindowData & { index: number; count: number }>(count ? `/dataset/records/${record}/window?class=${label}&index=${index}` : null)
   const max = Math.max(0, Math.floor(row.duration_seconds - 10))
-  return <Card title="Browse a record" aside={<span className="tag">app model split: {row.split}</span>}>
+  return <div data-testid="record-browser"><Card title="Browse a record" aside={<span className="tag">app model split: {row.split}</span>}>
     <div className="row">
       <label className="field">Record<select aria-label="Record" value={record} onChange={e => { setRecord(e.target.value); setIndex(0); setStart(0) }}>{records.map(r => <option key={r.record} value={r.record}>{r.record} · {r.split}</option>)}</select></label>
       <label className="field">Class<select aria-label="Class" value={label} onChange={e => { setLabel(e.target.value); setIndex(0) }}>{CLASS_CODES.map(c => <option key={c} value={c}>{c} ({row.annotated_beats[c]} annotated)</option>)}</select></label>
@@ -86,7 +86,7 @@ function Browser({ records }: { records: RecordRow[] }) {
         <Trace values={w.filtered} fs={360} label="Bandpass filtered" unit={w.units ?? 'signal units'} height={170} />
         <Trace values={w.model_input} fs={360} label="Standardized" unit="z-score" height={170} />
       </div>}</Load></>}
-  </Card>
+  </Card></div>
 }
 
 export default function Dataset() {

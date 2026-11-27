@@ -5,7 +5,7 @@ export type Summary = {
   per_class: Record<string, { precision: Stat; recall: Stat; f1: Stat; support: number }>
   review?: Record<string, { reviewed_share: number } & Record<string, null | { model_recall_all_beats: number; recall_after_perfect_review: number; recall_after_random_review: number }>>
 }
-export type Majority = { accuracy: number; macro_f1: number }
+export type Majority = { accuracy: number; macro_f1: number; per_class: Record<string, { recall: number }> }
 export type Study = {
   models: string[]
   data_report: null | DataReport
