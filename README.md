@@ -121,6 +121,23 @@ Patient-wise held-out MIT-BIH test, window level (source: `backend/artifacts/met
 
 **The model misses most S and F beats.** Accuracy is only slightly above the majority-class baseline. 98.9% of the training F beats come from record 208. Test scores exist for other variants in `results/`, so this test set is not untouched. See `docs/limitations.md`.
 
+
+## Large files (GitHub Release)
+
+The data and study outputs are too big for git. They are attached to the
+`v1.0-study` release. Install the GitHub CLI, log in, then:
+
+    gh auth login
+    gh release download v1.0-study --repo Nayuraikar/Neurocardio --dir /tmp/nc_release
+    mkdir -p kaggle/data
+    cp /tmp/nc_release/multidb_*.npz kaggle/data/
+    cp /tmp/nc_release/test_examples_for_xai.npz results/
+
+Check the files against `docs/backup/CHECKSUMS.txt` with `shasum -a 256`.
+The `*_SEALED.npz` files are the held-out test sets. Do not use them for
+training or tuning.
+
+
 ## Limitations
 
 - Retrospective analysis of recordings only; not real-time or live.
