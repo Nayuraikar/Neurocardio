@@ -48,3 +48,23 @@ kaggle/*.zip
 kaggle/data/*.npz
 *.npz
 backend/.venv/
+
+# Data, models and study outputs must not be committed. Exceptions: the XAI examples and the deployed model.
+# (The other demo data is WFDB and JSON: sample_data/ and backend/artifacts/demo_samples.json.)
+!docs/xai-examples/*.npz
+*SEALED*
+predictions_*
+*.npy
+*.joblib
+*.pkl
+*.h5
+*.keras
+!backend/models/neurocardio_final.keras
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.db-journal
+*.db-wal
+*.db-shm
+/data/
+.venv*/

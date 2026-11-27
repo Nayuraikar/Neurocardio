@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def reference_batch():
+    if not (ROOT / "results/test_examples_for_xai.npz").exists():
+        pytest.skip("results/test_examples_for_xai.npz not in repo (too large for GitHub)")
     with np.load(ROOT / "results/test_examples_for_xai.npz", allow_pickle=False) as z:
         return np.asarray(z["X"][[0, 1500, 30000, 45000]], dtype=np.float32)
 
