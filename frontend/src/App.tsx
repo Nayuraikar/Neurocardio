@@ -7,6 +7,7 @@ import { NAV } from './layouts/nav'
 import AnalysisStudio from './pages/AnalysisStudio'
 import Confidence from './pages/Confidence'
 import Overview from './pages/Overview'
+import Sensitivity from './pages/Sensitivity'
 import SignalQuality from './pages/SignalQuality'
 import ThreePanel from './pages/ThreePanel'
 import Viewer from './pages/Viewer'
@@ -19,6 +20,7 @@ const PAGES: Record<string, React.ReactNode> = {
   '/panels': <ThreePanel />,
   '/quality': <SignalQuality />,
   '/confidence': <Confidence />,
+  '/sensitivity': <Sensitivity />,
 }
 
 export default function App() {

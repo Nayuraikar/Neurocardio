@@ -116,3 +116,24 @@ def test_model_metrics_current_and_missing(client, tmp_path):
         assert empty.get("/api/model/metrics").json()["available"] is False
         (tmp_path / "metrics.json").write_text("{broken")
         assert "could not be read" in empty.get("/api/model/metrics").json()["problem"]
+
+
+def test_study_empty_smoke_broken_and_present(tmp_path):
+    import json
+    import study_fixtures as F
+    app = create_app(database_url=f"sqlite:///{tmp_path / 's.sqlite3'}", data_dir=tmp_path, artifacts_dir=tmp_path,
+                     initialize_model=False)
+    with TestClient(app) as c:
+        empty = c.get("/api/study").json()
+        assert empty["final"] == {"available": False, "message": "Final evaluation not run yet.", "data": None, "error": False}
+        assert {"cnn_bilstm", "rr_fusion_attn_shead", "cnn", "lstm", "resnet1d", "gbm", "stacked_ensemble"} <= set(empty["models"])
+        assert c.get("/api/study/operating-points").json()["available"] is False
+        (tmp_path / "selection.json").write_text(json.dumps(F.selection(smoke=True)))
+        assert "smoke" in c.get("/api/study").json()["selection"]["message"]
+        (tmp_path / "selection.json").write_text("not json")
+        assert c.get("/api/study").json()["selection"]["error"] is True
+        (tmp_path / "selection.json").write_text(json.dumps(F.selection()))
+        (tmp_path / "validation_report.json").write_text(json.dumps(F.validation()))
+        points = c.get("/api/study/operating-points").json()
+        assert [p["key"] for p in points["models"]["rr_fusion"]["points"]] == ["argmax", "thresholds"]
+        assert points["models"]["rr_fusion"]["points"][1]["validation"]["macro_f1"] == 0.6

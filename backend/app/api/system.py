@@ -31,6 +31,16 @@ def metrics(request: Request):
     return study_service.model_metrics(request.app.state)
 
 
+@router.get("/study")
+def study(request: Request):
+    return study_service.study(request.app.state.artifacts_dir)
+
+
+@router.get("/study/operating-points")
+def operating_points(request: Request):
+    return study_service.operating_points(request.app.state.artifacts_dir)
+
+
 @router.get("/model/config")
 def config(request: Request):
     if request.app.state.classifier is None:
