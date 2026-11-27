@@ -221,6 +221,8 @@ def test_history_sign_off_and_predictions_are_never_overwritten(client, analysed
 def test_report_sections_pdf_and_csv(client, analysed):
     _, analysis = analysed
     aid = analysis["id"]
+    first = client.get(f"/api/analyses/{aid}/beats?limit=1").json()[0]
+    client.post("/api/reviews", json={"beat_id": first["id"], "reviewed_label": "F", "note": "=1+1 <b>x"})
     full = client.get(f"/api/reports/{aid}?format=pdf")
     assert full.status_code == 200 and full.content[:4] == b"%PDF"
     small = client.get(f"/api/reports/{aid}?format=pdf&sections=recording,limitations&inline=true")
