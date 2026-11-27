@@ -8,7 +8,9 @@ import { NAV } from './layouts/nav'
 import AnalysisStudio from './pages/AnalysisStudio'
 import Comparison from './pages/Comparison'
 import Confidence from './pages/Confidence'
+import ModelCard from './pages/ModelCard'
 import Overview from './pages/Overview'
+import Performance, { MetricDetail } from './pages/Performance'
 import Sensitivity from './pages/Sensitivity'
 import SignalQuality from './pages/SignalQuality'
 import ThreePanel from './pages/ThreePanel'
@@ -26,7 +28,9 @@ const PAGES: Record<string, React.ReactNode> = {
   '/sensitivity': <Sensitivity />,
   '/xai': <XaiStudio />,
   '/errors': <ErrorsLab />,
+  '/performance': <Performance />,
   '/comparison': <Comparison />,
+  '/model-card': <ModelCard />,
 }
 
 export default function App() {
@@ -34,6 +38,7 @@ export default function App() {
     <Route element={<OverviewLayout />}><Route path="/" element={<Overview />} /></Route>
     <Route element={<WorkspaceLayout />}>
       {NAV.flatMap(g => g.items).map(([to, label]) => <Route key={to} path={to} element={PAGES[to] ?? <Pending name={label} />} />)}
+      <Route path="/performance/:metric" element={<MetricDetail />} />
       <Route path="*" element={<Empty title="Page not found" />} />
     </Route>
   </Routes></RecordingProvider></BrowserRouter>
