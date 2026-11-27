@@ -26,8 +26,6 @@ import ThreePanel from './pages/ThreePanel'
 import XaiStudio from './pages/XaiStudio'
 import Viewer from './pages/Viewer'
 
-const Pending = ({ name }: { name: string }) => <Empty title={`${name}: not rebuilt yet`} />
-
 const PAGES: Record<string, React.ReactNode> = {
   '/studio': <AnalysisStudio />,
   '/viewer': <Viewer />,
@@ -53,7 +51,7 @@ export default function App() {
     <Route path="/present" element={<Presentation />} />
     <Route element={<OverviewLayout />}><Route path="/" element={<Overview />} /></Route>
     <Route element={<WorkspaceLayout />}>
-      {NAV.flatMap(g => g.items).filter(([to]) => to !== '/present').map(([to, label]) => <Route key={to} path={to} element={PAGES[to] ?? <Pending name={label} />} />)}
+      {NAV.flatMap(g => g.items).filter(([to]) => to !== '/present').map(([to]) => <Route key={to} path={to} element={PAGES[to]} />)}
       <Route path="/performance/:metric" element={<MetricDetail />} />
       <Route path="/history/:id" element={<ReviewWorkspace />} />
       <Route path="/history/:id/report" element={<ReportBuilder />} />

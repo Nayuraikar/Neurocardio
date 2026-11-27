@@ -5,6 +5,7 @@ import type { Study } from '../api/study'
 import type { ModelConfig } from '../api/types'
 import { useApi } from '../api/useApi'
 import { ClassDistribution } from '../components/ClassDistribution'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { ConfusionMatrix } from '../components/ConfusionMatrix'
 import { HeadlineMetrics } from '../components/HeadlineMetrics'
 import { PipelineSteps } from '../components/PipelineSteps'
@@ -64,7 +65,7 @@ export default function Presentation() {
         <button type="button" onClick={() => void document.documentElement.requestFullscreen?.()}>Full screen</button><button type="button" onClick={() => navigate('/')}>Exit</button></div>
     </div>
     <h1>{title}</h1>
-    <div className="stack" key={index}>{body}</div>
+    <ErrorBoundary key={index}><div className="stack">{body}</div></ErrorBoundary>
     <p className="small muted" style={{ marginTop: 'auto' }}>{NOTICE}</p>
   </main>
 }

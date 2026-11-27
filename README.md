@@ -1,6 +1,6 @@
 # NeuroCardio
 
-NeuroCardio is a CNN-BiLSTM ECG beat classifier (N/S/V/F, AAMI classes) with explainability and human review. It is a research prototype and decision-support tool, not a diagnostic device.
+NeuroCardio is a CNN-BiLSTM ECG beat classifier (N/S/V/F, AAMI classes) with explainability and human review. It is a research prototype, not a diagnostic device.
 
 ## Quick start (macOS/Linux)
 
@@ -32,48 +32,57 @@ cd frontend && npm run dev -- --host localhost
 
 # tests
 cd backend && PYTHONPATH=. .venv/bin/python -m pytest -q
+
+# demo windows (training and validation patients only)
+backend/.venv/bin/python backend/tools/build_demo_samples.py
+
+# end-to-end and number checks (see frontend/e2e/README.md)
+cd frontend && npm run e2e
 ```
 
 API docs: http://127.0.0.1:8000/docs. The Vite dev server proxies `/api` to port 8000. `backend/data/` (SQLite DB, uploads, reports) is created automatically on first start.
 
 ## Features
 
-- Dashboard and upload (WFDB or CSV)
-- ECG viewer: paper grid, zoom/pan, overview strip, R-peaks, RR/bpm, class-shaded abnormal beats
-- Single verdict card with composition bar
-- Per-beat Explain drawer (Integrated Gradients by default, Grad-CAM as the coarse alternative; heatmap plus top contributing beats)
-- Doctor review/edit; model and reviewed values are stored separately
-- Model architecture page
-- PDF and CSV report export
+- Overview, three-stage Analysis Studio, ECG viewer with replay, three-panel view
+- Signal-quality measurements, confidence and uncertainty explorer, priority review queue
+- XAI Studio (signed Integrated Gradients at 512 steps, Grad-CAM, per-window completeness, offline faithfulness results)
+- Misclassification lab, model performance, model comparison, model card, dataset explorer
+- Demo Playground and Challenge Mode (training and validation patients only)
+- History, review workspace (reviewer labels never change predictions), report builder (PDF and CSV), batch analysis, comparison, presentation mode
+
+Study results appear only when `selection.json`, `validation_report.json` and `final_report.json` from a non-smoke run are
+placed in `backend/artifacts/` (or `backend/artifacts/multidb/`). Until then the UI says they have not been run.
 
 ## Model
 
-- Input: 720x1 R-peak-centred window, 0.5-40 Hz Butterworth bandpass, per-window z-score
-- Architecture: Conv1D 32/64/128 + BatchNorm + MaxPool -> BiLSTM 64/direction -> Dropout 0.4 -> Dense 64 -> Dense 4 softmax; 142,980 parameters
-- Selected by validation macro-F1; sqrt-weighted cross-entropy
-- Files: `backend/models/` (`neurocardio_final.keras`, `.sha256`, `preprocessing_config.json`). Details in `docs/inference-pipeline.md`.
+- Input: 720×1 R-peak-centred window, 0.5–40 Hz Butterworth bandpass, per-window z-score
+- Architecture: CNN-BiLSTM. Three Conv1D layers (32, 64, 128 filters; batch normalization and max pooling after the first two) → BiLSTM 64 per direction → Dropout 0.4 → Dense 64 → Dense 4 softmax; 142,980 parameters
+- Selected by validation macro-F1; the config records sqrt-weighted cross-entropy (unverified: the training code is not in the repository)
+- Files: `backend/models/`. Details in `docs/inference-pipeline.md`.
 
 ## Evaluation
 
-Fixed record-wise split: 16 train / 7 validation / 21 test records; 4 paced records excluded.
+Patient-wise held-out MIT-BIH test, window level (source: `backend/artifacts/metrics.json`).
 
-| Accuracy | Macro-F1 | Macro ROC-AUC |
-|---|---|---|
-| 0.906 | 0.473 | 0.837 |
+| | Macro-F1 | S recall | F recall | Accuracy |
+|---|---|---|---|---|
+| This model | 0.473 | 0.097 | 0.057 | 0.906 |
+| Always answer N (majority class) | 0.235 | 0 | 0 | 0.887 |
 
-Recall for S is about 0.10 and for F about 0.06: the model largely misses these minority classes. See `docs/limitations.md` and `docs/model-verification-report.md`.
+**The model misses most S and F beats.** Accuracy is only slightly above the majority-class baseline. 98.9% of the training F beats come from record 208. Test scores exist for other variants in `results/`, so this test set is not untouched. See `docs/limitations.md`.
 
 ## Limitations
 
 - Retrospective analysis of recordings only; not real-time or live.
-- Decision-support only, not a diagnosis; it classifies beats, not whole recordings.
+- Not a diagnosis: it classifies individual beat windows, not recordings or patients.
 - The training notebook/code is not included in this repository.
 - Calibration: ECE 0.042 -> 0.031 after temperature scaling (T=1.30, fit on validation records).
 - Small minority classes: record-level bootstrap 95% CIs are S recall [0.06, 0.41] and F recall [0.00, 0.38], too wide to draw conclusions about S/F performance.
 - End-to-end with XQRS-detected peaks, V recall (misses counted as errors) drops from 0.892 to 0.860.
 - PVC burden per record: MAE 4.46 percentage points, Pearson r = 0.595.
 - Noise: stable with white noise added to the raw signal down to 12 dB SNR, but collapses if noise reaches the z-scored window (macro-F1 0.27 at 30 dB, ~0.05 at 24 dB). Only white noise was tested. Hypothesis (untested): only S and F were augmented in training (Gaussian noise sd 0.03 among the transforms), so N and V never saw noisy beats, and noise may act as a class cue; under heavy noise the model predicts almost everything as F/S.
-- Explanations pass a weight-randomization check. Deletion tests are mixed: Integrated Gradients is faithful under MoRF vs LeRF (mean probability drop 0.28 vs -0.02 at 50% deleted), while Grad-CAM is weak (0.07 vs 0.03) and, with interpolated replacement, no better than deleting a random contiguous block.
+- Explanations: results are mixed and come from small samples. In `backend/artifacts/xai_evaluation.json`, Integrated Gradients beats smoothed random controls in all five deletion/insertion variants and Grad-CAM in four of five, using 50-step IG (the app uses 512). Signed IG passes weight randomization; absolute IG and Grad-CAM give weaker evidence. None of this shows clinical or causal relevance. Completeness is reported per window and can exceed 5% error even at 512 steps.
 - Details: `results/extended_eval/summary.md` and `results/extended_eval/diagnostics.md`.
 - Some large research artifacts (extra model variants, `results/test_examples_for_xai.npz`, >100 MB) are not in the repo; the tests that need that file are skipped when it is absent.
 
@@ -83,7 +92,7 @@ Recall for S is about 0.10 and for F about 0.06: the model largely misses these 
 - TensorFlow install fails (Apple Silicon/Windows): use Python 3.11 64-bit and upgrade pip; `tensorflow==2.20.0` is pinned.
 - Model not found: confirm `backend/models/neurocardio_final.keras` exists and `shasum -a 256 -c neurocardio_final.keras.sha256` passes (run in `backend/models`).
 - CORS / API errors: the backend allows `http://localhost:5173`; open the app at `localhost`, not `127.0.0.1`, and keep the backend on port 8000.
-- `results/` files missing: `/api/v1/model-info` reads metrics JSONs from `results/`.
+- An evaluation panel says it has not been generated: check the JSON files in `backend/artifacts/`.
 
 ## Structure
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useRecording } from '../context/RecordingContext'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { NOTICE } from '../theme/theme'
 import { NAV, NEEDS_RECORDING, TITLES } from './nav'
 import { BackendBanner, SystemStatus } from './StatusBar'
@@ -35,7 +36,7 @@ export default function WorkspaceLayout() {
         </div>
         <SystemStatus />
       </div>
-      <main id="main" className="workspace-main"><BackendBanner /><Outlet /></main>
+      <main id="main" className="workspace-main"><BackendBanner /><ErrorBoundary key={pathname}><Outlet /></ErrorBoundary></main>
       <footer className="foot">{NOTICE}</footer>
     </div>
   </div>
